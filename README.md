@@ -56,6 +56,12 @@ effects/hover-spotlight/
 
 如果你的描述确实需要提到某个框架，把它写进 `adapters/<stack>.md`，而不是 `prompt.md`。
 
+## 演示动效开关
+
+demo 默认遵循系统「减少动态效果」（`prefers-reduced-motion`）。如果你的系统开了这个选项，动画类 demo 会显示为静态降级版。
+
+在 demo URL 后加 `?motion=1` 可强制播放完整动效；站点详情页默认已开启，并可在演示下方切换。
+
 ## 目录
 
 ```

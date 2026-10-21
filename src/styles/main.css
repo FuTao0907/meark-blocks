@@ -19,6 +19,24 @@
 
 * { box-sizing: border-box; }
 
+/* 自绘滚动条：避免系统默认滚动条破坏深色版式 */
+* { scrollbar-width: thin; scrollbar-color: #2b3a5c transparent; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+
+::-webkit-scrollbar-track { background: transparent; }
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: #26314e;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover { background: #3a4d78; background-clip: content-box; }
+
+::-webkit-scrollbar-corner { background: transparent; }
+
 html, body { margin: 0; padding: 0; overflow-x: hidden; }
 
 body {

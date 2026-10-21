@@ -16,8 +16,12 @@ const LOGICAL_H = 640
 
 const stageEl = ref<HTMLElement | null>(null)
 const scale = ref(0.5)
+const forceMotion = ref(true)
+const systemReduce = ref(false)
+const fullscreen = ref(false)
 
 const demoUrl = computed(() => `${import.meta.env.BASE_URL}effects/${props.block.id}/demo.html`)
+const demoSrc = computed(() => `${demoUrl.value}${forceMotion.value ? '?motion=1' : ''}`)
 const frameStyle = computed(() => ({
   width: `${LOGICAL_W}px`,
   height: `${LOGICAL_H}px`,
@@ -43,11 +47,17 @@ function measure() {
 }
 
 function onKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') emit('close')
+  if (event.key !== 'Escape') return
+  if (fullscreen.value) {
+    fullscreen.value = false
+    return
+  }
+  emit('close')
 }
 
 onMounted(() => {
   measure()
+  systemReduce.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   if (typeof ResizeObserver !== 'undefined' && stageEl.value) {
     ro = new ResizeObserver(measure)
     ro.observe(stageEl.value)
@@ -80,7 +90,7 @@ onBeforeUnmount(() => {
           <button type="button" class="btn btn--sm" @click="copy(fullPrompt, 'full')">
             {{ copiedKey === 'full' ? '已复制 ✓' : '复制 + 技术栈适配' }}
           </button>
-          <a class="btn btn--ghost btn--sm" :href="demoUrl" target="_blank" rel="noopener">新标签打开</a>
+          <button type="button" class="btn btn--ghost btn--sm" @click="fullscreen = true">全屏预览</button>
           <button type="button" class="page__close" aria-label="关闭" @click="emit('close')">×</button>
         </div>
       </header>
@@ -89,16 +99,25 @@ onBeforeUnmount(() => {
         <div class="page__demo">
           <div ref="stageEl" class="stage" :style="stageStyle">
             <iframe
-              :src="demoUrl"
+              :src="demoSrc"
               :style="frameStyle"
               sandbox="allow-scripts allow-forms"
               title="效果演示"
             ></iframe>
           </div>
-          <p class="page__note">
-            演示按 {{ LOGICAL_W }}×{{ LOGICAL_H }} 渲染并等比缩放（当前 {{ Math.round(scale * 100) }}%），
-            完整展示桌面版式；交互请在画面内直接操作。
-          </p>
+          <div class="page__note">
+            <p>
+              演示按 {{ LOGICAL_W }}×{{ LOGICAL_H }} 渲染并等比缩放（当前 {{ Math.round(scale * 100) }}%），
+              完整展示桌面版式；需要原始尺寸请点右上「全屏预览」。
+            </p>
+            <label class="motion-toggle">
+              <input v-model="forceMotion" type="checkbox" />
+              <span>强制播放动效（忽略系统的「减少动态效果」）</span>
+            </label>
+            <p v-if="systemReduce" class="motion-warn">
+              检测到系统开启了「减少动态效果」，演示原本会自动降级为静态版本；上方开关已默认打开，关闭后即遵循系统设置。
+            </p>
+          </div>
         </div>
 
         <div class="page__sheet">
@@ -137,6 +156,11 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </section>
+
+    <div v-if="fullscreen" class="fs" role="dialog" aria-label="全屏演示">
+      <iframe :src="demoSrc" sandbox="allow-scripts allow-forms" title="全屏演示"></iframe>
+      <button type="button" class="fs__close" aria-label="退出全屏" @click="fullscreen = false">×</button>
+    </div>
   </div>
 </template>
 
@@ -222,7 +246,57 @@ onBeforeUnmount(() => {
   transform-origin: top left;
 }
 
-.page__note { margin: 10px 2px 0; font-size: 11.5px; line-height: 1.7; color: #61708f; }
+.page__note {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 12px 2px 0;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: #61708f;
+}
+
+.page__note p { margin: 0; }
+
+.motion-toggle {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  color: #8b9ab8;
+  cursor: pointer;
+}
+
+.motion-toggle input { accent-color: var(--accent); }
+
+.motion-warn {
+  padding: 8px 10px;
+  border: 1px solid rgba(251, 191, 36, 0.32);
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.08);
+  color: #d9b56b;
+}
+
+.fs { position: fixed; inset: 0; z-index: 60; background: #0b1022; }
+
+.fs iframe { display: block; width: 100%; height: 100%; border: 0; }
+
+.fs__close {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 61;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(11, 17, 30, 0.9);
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.fs__close:hover { border-color: var(--accent); }
 
 .page__sheet { padding: 20px 24px 60px; overflow-y: auto; }
 

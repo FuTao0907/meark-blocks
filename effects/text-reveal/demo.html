@@ -1,6 +1,43 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
+<script>
+  // 演示模式：?motion=1 时忽略系统「减少动态效果」，方便查看完整效果；默认遵循系统设置
+  (function () {
+    var force = new URLSearchParams(location.search).get('motion') === '1'
+    if (!force) return
+    document.documentElement.classList.add('motion-force')
+    var nativeMatchMedia = window.matchMedia.bind(window)
+    window.matchMedia = function (query) {
+      if (/prefers-reduced-motion/.test(query)) {
+        return {
+          matches: false,
+          media: query,
+          onchange: null,
+          addEventListener: function () {},
+          removeEventListener: function () {},
+          addListener: function () {},
+          removeListener: function () {},
+          dispatchEvent: function () { return false }
+        }
+      }
+      return nativeMatchMedia(query)
+    }
+  })()
+</script>
+<style>
+  /* 统一的自绘滚动条，避免系统默认样式破坏深色版式 */
+  * { scrollbar-width: thin; scrollbar-color: #2b3a5c transparent; }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: #2b3a5c;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #3a4d78; background-clip: content-box; }
+</style>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>文字逐行入场 · demo</title>
@@ -245,13 +282,11 @@
   }
   .foot b { color: var(--muted); font-weight: 600; }
 
-  @media (prefers-reduced-motion: reduce) {
-    .js .rv {
+  @media (prefers-reduced-motion: reduce) {html:not(.motion-force) .js .rv {
       opacity: 1;
       transform: none;
       transition: none;
-    }
-    .line { overflow: visible; padding-bottom: 0; margin-bottom: 0; }
+    }html:not(.motion-force) .line { overflow: visible; padding-bottom: 0; margin-bottom: 0; }
   }
 </style>
 <script>document.documentElement.classList.add('js')</script>
@@ -334,7 +369,8 @@
   const io = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return
-      entry.target.classList.add('is-in')
+      // 稍微延迟再播，避免页面一打开就已经播完、用户完全看不到过程
+      setTimeout(() => entry.target.classList.add('is-in'), 260)
       io.unobserve(entry.target) // 只播一次，播完即解除观察
     })
   }, { threshold: 0.25, rootMargin: '0px 0px -8% 0px' })
@@ -345,10 +381,15 @@
     roots.forEach((root) => {
       root.classList.remove('is-in')
       void root.offsetHeight // 强制回流，保证同一元素能重新播放
-      io.observe(root) // 重新布防，进入视口时再次触发
     })
-    hint.textContent = '已重新布防：回到顶部后再次进入视口即会重播。'
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setTimeout(() => {
+      roots.forEach((root) => {
+        const rect = root.getBoundingClientRect()
+        if (rect.top < window.innerHeight * 0.9) root.classList.add('is-in')
+        else io.observe(root)
+      })
+    }, 160)
+    hint.textContent = '已重新播放：整组文字重新逐行入场。'
   }
 
   listen(replayBtn, 'click', replay)

@@ -1,6 +1,43 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
+<script>
+  // 演示模式：?motion=1 时忽略系统「减少动态效果」，方便查看完整效果；默认遵循系统设置
+  (function () {
+    var force = new URLSearchParams(location.search).get('motion') === '1'
+    if (!force) return
+    document.documentElement.classList.add('motion-force')
+    var nativeMatchMedia = window.matchMedia.bind(window)
+    window.matchMedia = function (query) {
+      if (/prefers-reduced-motion/.test(query)) {
+        return {
+          matches: false,
+          media: query,
+          onchange: null,
+          addEventListener: function () {},
+          removeEventListener: function () {},
+          addListener: function () {},
+          removeListener: function () {},
+          dispatchEvent: function () { return false }
+        }
+      }
+      return nativeMatchMedia(query)
+    }
+  })()
+</script>
+<style>
+  /* 统一的自绘滚动条，避免系统默认样式破坏深色版式 */
+  * { scrollbar-width: thin; scrollbar-color: #2b3a5c transparent; }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: #2b3a5c;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #3a4d78; background-clip: content-box; }
+</style>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>噪声波浪背景 · demo</title>
@@ -114,8 +151,7 @@
     font-size: 12px;
     color: var(--muted);
   }
-  @media (prefers-reduced-motion: reduce) {
-    .stage__badge { background: rgba(94, 234, 212, .18); }
+  @media (prefers-reduced-motion: reduce) {html:not(.motion-force) .stage__badge { background: rgba(94, 234, 212, .18); }
   }
 </style>
 </head>
