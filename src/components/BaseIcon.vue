@@ -17,6 +17,8 @@ const paths: Record<string, string[]> = {
   external: ['M14 4h6v6', 'M20 4l-9 9', 'M10 4H5v15h15v-5'],
   chevron: ['M6 9l6 6 6-6'],
   play: ['M8 5.5v13l11-6.5z'],
+  sliders: ['M3.5 7.5h17', 'M3.5 16.5h17', 'M9 10a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z', 'M15 19a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z'],
+  info: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 'M12 11v5.5', 'M12 7.6h.01'],
 }
 </script>
 

@@ -56,6 +56,13 @@ effects/hover-spotlight/
 
 如果你的描述确实需要提到某个框架，把它写进 `adapters/<stack>.md`，而不是 `prompt.md`。
 
+## 站点交互
+
+- **项目画像**：页头下方一栏横向排列（技术栈 / 样式 / 依赖 / 输出），选择会记住，并在复制时自动附加「本次项目约束」。
+- **搜索**：右上角搜索按钮，点开即输入；`/` 或 `Ctrl/⌘ + K` 随时唤起，`Esc` 收起，输入即时过滤。
+- **筛选**：类型 / 场景标签随当前结果收缩——没有任何匹配内容的标签直接隐藏；标签放不下时单行横向滚动并带渐隐提示；再点一次已选标签即取消。
+- **关于页**：页脚「关于」或 URL `#about`。三文件结构、禁词、项目画像、新增积木、部署等说明都收在这一页，首页只留内容。
+
 ## 设计系统
 
 - **主站外壳**：`src/styles/main.css` 定义唯一一套 token（`--bg / --panel / --line / --text / --muted / --accent`）、三档圆角（`--radius-field / --radius-card / --radius-pill`）和三个控件类：`.chip`（标签/筛选项共用）、`.btn`（只有 primary 与 ghost）、`.field`（输入框与下拉共用）。
@@ -81,9 +88,10 @@ docs/PRD.md     产品文档
 
 ## 部署
 
+站点由 GitHub Actions 发布到 GitHub Pages：推送 `main` 后 `.github/workflows/deploy.yml` 执行 `npm ci && npm run build`，把 `dist/` 上传为 Pages 产物。
+
 ```bash
-# GitHub Pages 子路径
-VITE_BASE=/meark-blocks/ npm run build
+npm run build   # 本地构建：生成 catalog.json、复制 demo，输出到 dist/
 ```
 
-`public/CNAME` 内容为 `blocks.meark.cn`，DNS 加 CNAME 指向 GitHub Pages 或 Cloudflare Pages。
+线上地址 <https://futao0907.github.io/meark-blocks/>。自定义域名 `blocks.meark.cn` 的 DNS 还没配（`public/CNAME` 已暂时移除）；配置好 CNAME 记录后放回 `public/CNAME` 即可。

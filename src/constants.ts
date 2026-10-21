@@ -53,3 +53,17 @@ export const OUTPUT_LABELS: Record<string, string> = {
 export function labelOf(map: Record<string, string>, key: string): string {
   return map[key] ?? key
 }
+
+/** 筛选标签固定顺序：不随数据出现顺序跳动 */
+export const CATEGORY_ORDER = ['animation', 'interaction', 'layout', 'component', 'canvas', 'visual', 'feedback']
+
+export const SCENE_ORDER = ['landing', 'pricing', 'portfolio', 'dashboard', 'form', 'marketing', 'mobile']
+
+/** 项目画像各维度的展示顺序 */
+export const STACK_ORDER = ['vue3', 'react', 'vanilla']
+
+export const STYLING_ORDER = ['native', 'cssModules', 'tailwind']
+
+export const DEPS_ORDER = ['zero', 'allowed']
+
+export const OUTPUT_ORDER = ['single', 'multi']

@@ -1,7 +1,7 @@
 {
   "name": "meark-blocks",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "积木库 —— 把想要的效果翻译成 AI 能准确执行的规格",
   "scripts": {

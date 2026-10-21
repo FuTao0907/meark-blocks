@@ -39,6 +39,7 @@
   --scroll-thumb-hover: #b9b3a4;
   --shadow: 0 18px 50px rgba(46, 49, 54, 0.14);
   --shadow-sm: 0 1px 2px rgba(46, 49, 54, 0.05);
+  --shadow-pop: 0 12px 32px rgba(46, 49, 54, 0.14);
   --focus-ring: rgba(60, 110, 123, 0.32);
 
   --radius-field: 6px;
@@ -89,6 +90,7 @@
   --scroll-thumb-hover: #4d545e;
   --shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 14px 34px rgba(0, 0, 0, 0.55);
   --focus-ring: rgba(111, 168, 181, 0.32);
 
   color-scheme: dark;
@@ -293,10 +295,10 @@ button.chip:hover {
 .topbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
-  align-items: flex-start;
+  gap: 16px;
+  align-items: center;
   justify-content: space-between;
-  padding-bottom: 22px;
+  padding-bottom: 18px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -333,7 +335,8 @@ button.chip:hover {
 
 .topbar__tools {
   display: flex;
-  gap: 10px;
+  flex: none;
+  gap: 8px;
   align-items: center;
 }
 
@@ -358,8 +361,8 @@ button.chip:hover {
 .controls {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin: 26px 0 22px;
+  gap: 12px;
+  margin: 8px 0 20px;
 }
 
 .summary {
@@ -397,6 +400,15 @@ button.chip:hover {
   background: var(--panel);
   color: var(--text);
   cursor: pointer;
+}
+
+.empty code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg-soft);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--text-regular);
 }
 
 /* ---------- 底部操作坞 ---------- */
@@ -438,21 +450,47 @@ button.chip:hover {
 }
 
 .footer {
-  margin-top: 46px;
-  padding-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 18px;
+  margin-top: 42px;
+  padding-top: 16px;
   border-top: 1px solid var(--line);
-  font-size: 12px;
   color: var(--muted);
-  line-height: 1.9;
+  font-size: 12px;
 }
 
-.footer code {
-  padding: 1px 5px;
-  border-radius: 4px;
+.footer__copy {
+  letter-spacing: 0.01em;
+}
+
+.footer__links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.footer__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 140ms ease, background 140ms ease;
+}
+
+.footer__link:hover {
   background: var(--bg-soft);
-  font-family: var(--mono);
-  font-size: 11.5px;
-  color: var(--text-regular);
+  color: var(--text);
 }
 
 .overlay {
@@ -483,14 +521,21 @@ button.chip:hover {
     grid-template-columns: 1fr;
   }
   .topbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
   }
   .topbar__tools {
+    flex: 1;
+    gap: 6px;
     align-items: center;
-    flex-direction: row-reverse;
-    justify-content: flex-start;
+    justify-content: flex-end;
+  }
+  .topbar__tools:has(.search__field) .search {
+    flex: 1;
+  }
+  .topbar__tools:has(.search__field) > .icon-btn {
+    display: none;
   }
   .dock {
     left: 14px;

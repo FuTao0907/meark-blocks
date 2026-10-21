@@ -1,113 +1,121 @@
 <script setup lang="ts">
-import type { Profile, Stack } from '../types'
-import { DEPS_LABELS, OUTPUT_LABELS, STACK_LABELS, STYLING_LABELS } from '../constants'
+import { computed } from 'vue'
+import BaseIcon from './BaseIcon.vue'
+import ProfileSelect from './ProfileSelect.vue'
+import {
+  DEPS_LABELS,
+  DEPS_ORDER,
+  OUTPUT_LABELS,
+  OUTPUT_ORDER,
+  STACK_LABELS,
+  STACK_ORDER,
+  STYLING_LABELS,
+  STYLING_ORDER,
+  labelOf,
+} from '../constants'
+import type { Profile } from '../types'
 
 const props = defineProps<{ profile: Profile }>()
 const emit = defineEmits<{ update: [value: Profile] }>()
 
-const stacks: Stack[] = ['vue3', 'react', 'vanilla']
-
-function patch(partial: Partial<Profile>) {
-  emit('update', { ...props.profile, ...partial })
+function optionsOf(order: string[], labels: Record<string, string>) {
+  return order.map((value) => ({ value, label: labelOf(labels, value) }))
 }
 
-function setStack(event: Event) {
-  patch({ stack: (event.target as HTMLSelectElement).value as Stack })
-}
+const stackOptions = computed(() => optionsOf(STACK_ORDER, STACK_LABELS))
+const stylingOptions = computed(() => optionsOf(STYLING_ORDER, STYLING_LABELS))
+const depsOptions = computed(() => optionsOf(DEPS_ORDER, DEPS_LABELS))
+const outputOptions = computed(() => optionsOf(OUTPUT_ORDER, OUTPUT_LABELS))
 
-function setStyling(event: Event) {
-  patch({ styling: (event.target as HTMLSelectElement).value as Profile['styling'] })
-}
-
-function setDeps(event: Event) {
-  patch({ deps: (event.target as HTMLSelectElement).value as Profile['deps'] })
-}
-
-function setOutput(event: Event) {
-  patch({ output: (event.target as HTMLSelectElement).value as Profile['output'] })
+function patch(next: Partial<Profile>) {
+  emit('update', { ...props.profile, ...next })
 }
 </script>
 
 <template>
-  <div class="profile">
-    <div class="profile__title">项目画像<span>复制时自动附加适配层</span></div>
-    <div class="profile__row">
-      <label>
-        <span>技术栈</span>
-        <select :value="profile.stack" @change="setStack">
-          <option v-for="s in stacks" :key="s" :value="s">{{ STACK_LABELS[s] }}</option>
-        </select>
-      </label>
-      <label>
-        <span>样式</span>
-        <select :value="profile.styling" @change="setStyling">
-          <option v-for="(label, key) in STYLING_LABELS" :key="key" :value="key">{{ label }}</option>
-        </select>
-      </label>
-      <label>
-        <span>依赖</span>
-        <select :value="profile.deps" @change="setDeps">
-          <option v-for="(label, key) in DEPS_LABELS" :key="key" :value="key">{{ label }}</option>
-        </select>
-      </label>
-      <label>
-        <span>输出</span>
-        <select :value="profile.output" @change="setOutput">
-          <option v-for="(label, key) in OUTPUT_LABELS" :key="key" :value="key">{{ label }}</option>
-        </select>
-      </label>
+  <section class="profile" aria-label="项目画像">
+    <span class="profile__lead">
+      <BaseIcon name="sliders" :size="15" />
+      <span>项目画像</span>
+    </span>
+
+    <div class="profile__fields">
+      <ProfileSelect
+        label="技术栈"
+        :model-value="profile.stack"
+        :options="stackOptions"
+        @update:model-value="(value: string) => patch({ stack: value as Profile['stack'] })"
+      />
+      <ProfileSelect
+        label="样式"
+        :model-value="profile.styling"
+        :options="stylingOptions"
+        @update:model-value="(value: string) => patch({ styling: value as Profile['styling'] })"
+      />
+      <ProfileSelect
+        label="依赖"
+        :model-value="profile.deps"
+        :options="depsOptions"
+        @update:model-value="(value: string) => patch({ deps: value as Profile['deps'] })"
+      />
+      <ProfileSelect
+        label="输出"
+        :model-value="profile.output"
+        :options="outputOptions"
+        @update:model-value="(value: string) => patch({ output: value as Profile['output'] })"
+      />
     </div>
-  </div>
+
+    <span class="profile__hint">复制时自动附加适配层</span>
+  </section>
 </template>
 
 <style scoped>
 .profile {
-  min-width: 300px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-card);
-  background: var(--panel);
-  box-shadow: var(--shadow-sm);
-}
-
-.profile__title {
   display: flex;
-  gap: 8px;
-  align-items: baseline;
-  margin-bottom: 8px;
-  font-size: 12px;
-  color: var(--muted);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  padding: 16px 0 2px;
 }
 
-.profile__title span { font-size: 10.5px; opacity: 0.6; }
+.profile__lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
 
-.profile__row { display: flex; flex-wrap: wrap; gap: 8px; }
+.profile__fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+}
 
-.profile__row label { display: flex; flex-direction: column; gap: 3px; }
-
-.profile__row label > span { font-size: 10.5px; color: var(--muted); }
+.profile__hint {
+  margin-left: auto;
+  color: var(--placeholder);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
 
 @media (max-width: 640px) {
-  .profile { min-width: 0; flex: 1; }
-  .profile__row label { flex: 1 1 44%; min-width: 0; }
-  .profile__row select { width: 100%; }
-}
+  .profile {
+    gap: 4px 10px;
+    padding-top: 14px;
+  }
 
-select {
-  height: 34px;
-  padding: 0 8px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-field);
-  background: var(--panel-2);
-  color: var(--text);
-  font-size: 12px;
-  outline: none;
-  cursor: pointer;
-}
+  .profile__hint {
+    display: none;
+  }
 
-select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--focus-ring);
+  .profile__fields {
+    gap: 0;
+  }
 }
 </style>
-
