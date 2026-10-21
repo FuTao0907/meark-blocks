@@ -25,49 +25,23 @@
     }
   })()
 </script>
-<style>
-  /* 统一的自绘滚动条，避免系统默认样式破坏深色版式 */
-  * { scrollbar-width: thin; scrollbar-color: #2b3a5c transparent; }
-  ::-webkit-scrollbar { width: 9px; height: 9px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb {
-    border: 2px solid transparent;
-    border-radius: 999px;
-    background: #2b3a5c;
-    background-clip: content-box;
-  }
-  ::-webkit-scrollbar-thumb:hover { background: #3a4d78; background-clip: content-box; }
-</style>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../shared/base.css" />
 <title>文字逐行入场 · demo</title>
 <style>
   :root {
-    --bg: #0b1020;
-    --card: #141a2e;
-    --line: #22304d;
-    --text: #e6ebf5;
-    --muted: #8d9ab5;
-    --accent: #5eead4;
 
     /* 参数默认值，与 meta.json 一致 */
     --stagger: 120ms;
     --duration: 600ms;
     --distance: 24px;
     --start-delay: 0ms;
-  }
+}
 
-  * { box-sizing: border-box; }
-
-  body {
-    margin: 0;
-    background:
-      radial-gradient(1000px 560px at 50% -12%, #1c2745 0%, rgba(11, 16, 32, 0) 66%),
-      var(--bg);
-    color: var(--text);
-    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
+  * { box-sizing: border-box; }body {
+  margin: 0;
+}
 
   .page { width: min(900px, 100%); margin: 0 auto; padding: 0 20px 100px; }
 
@@ -173,7 +147,7 @@
     letter-spacing: 0.01em;
   }
   .grad {
-    background: linear-gradient(96deg, #e6ebf5 4%, #5eead4 62%, #7dd3fc 100%);
+    background: linear-gradient(96deg, var(--text) 4%, #5eead4 62%, #7dd3fc 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;

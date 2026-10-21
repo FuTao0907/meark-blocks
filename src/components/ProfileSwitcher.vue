@@ -65,7 +65,7 @@ function setOutput(event: Event) {
   min-width: 300px;
   padding: 10px 12px;
   border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-field);
   background: rgba(17, 26, 46, 0.6);
 }
 
@@ -93,9 +93,10 @@ function setOutput(event: Event) {
 }
 
 select {
-  padding: 5px 7px;
+  height: 34px;
+  padding: 0 8px;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius-field);
   background: var(--panel);
   color: var(--text);
   font-size: 12px;
@@ -105,3 +106,4 @@ select {
 
 select:focus { border-color: var(--accent); }
 </style>
+

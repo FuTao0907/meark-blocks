@@ -23,7 +23,7 @@ const aka = computed(() => props.block.aka.slice(0, 3).join(' / '))
     @keydown.space.prevent="emit('open')"
   >
     <div class="card__head">
-      <span class="card__cat">{{ categoryLabel }}</span>
+      <span class="chip chip--on">{{ categoryLabel }}</span>
       <button
         type="button"
         class="card__pick"
@@ -40,7 +40,7 @@ const aka = computed(() => props.block.aka.slice(0, 3).join(' / '))
     <p class="card__aka">{{ aka }}</p>
 
     <div class="card__tags">
-      <span v-for="f in feelLabels" :key="f" class="tag">{{ f }}</span>
+      <span v-for="f in feelLabels" :key="f" class="chip">{{ f }}</span>
     </div>
 
     <div class="card__foot">
@@ -58,31 +58,31 @@ const aka = computed(() => props.block.aka.slice(0, 3).join(' / '))
   flex-direction: column;
   padding: 16px 16px 14px;
   border: 1px solid var(--line-soft);
-  border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(20, 29, 50, 0.9), rgba(14, 20, 36, 0.9));
+  border-radius: var(--radius-card);
+  background: var(--panel);
   cursor: pointer;
   outline: none;
-  transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  transition: border-color 160ms ease, transform 160ms ease;
 }
 
 .card:hover {
   border-color: var(--line);
   transform: translateY(-2px);
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
 }
 
-.card:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.16); }
+.card:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.16);
+}
 
-.card--on { border-color: rgba(94, 234, 212, 0.55); }
+.card--on {
+  border-color: rgba(94, 234, 212, 0.55);
+}
 
-.card__head { display: flex; align-items: center; justify-content: space-between; }
-
-.card__cat {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(94, 234, 212, 0.09);
-  color: var(--accent);
-  font-size: 11px;
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .card__pick {
@@ -91,7 +91,7 @@ const aka = computed(() => props.block.aka.slice(0, 3).join(' / '))
   width: 26px;
   height: 26px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   background: transparent;
   color: var(--muted);
   font-size: 14px;
@@ -123,14 +123,11 @@ const aka = computed(() => props.block.aka.slice(0, 3).join(' / '))
   -webkit-box-orient: vertical;
 }
 
-.card__tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 10px; }
-
-.tag {
-  padding: 2px 7px;
-  border: 1px solid var(--line-soft);
-  border-radius: 6px;
-  font-size: 11px;
-  color: var(--muted);
+.card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 10px;
 }
 
 .card__foot {
@@ -139,10 +136,10 @@ const aka = computed(() => props.block.aka.slice(0, 3).join(' / '))
   align-items: center;
   margin-top: auto;
   padding-top: 10px;
-  border-top: 1px dashed var(--line-soft);
   font-size: 11.5px;
   color: #6f7f9e;
 }
 
 .dot { opacity: 0.5; }
 </style>
+

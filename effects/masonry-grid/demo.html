@@ -25,43 +25,21 @@
     }
   })()
 </script>
-<style>
-  /* 统一的自绘滚动条，避免系统默认样式破坏深色版式 */
-  * { scrollbar-width: thin; scrollbar-color: #2b3a5c transparent; }
-  ::-webkit-scrollbar { width: 9px; height: 9px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb {
-    border: 2px solid transparent;
-    border-radius: 999px;
-    background: #2b3a5c;
-    background-clip: content-box;
-  }
-  ::-webkit-scrollbar-thumb:hover { background: #3a4d78; background-clip: content-box; }
-</style>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../shared/base.css" />
 <title>瀑布流布局 · demo</title>
 <style>
   :root {
-    --bg: #0b1020;
-    --card: #141a2e;
-    --line: #22304d;
-    --text: #e6ebf5;
-    --muted: #8d9ab5;
-    --accent: #5eead4;
     --gap: 16px;
     --reflow: 280ms;
     --radius: 14px;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    min-height: 100vh;
-    padding: 44px 20px 72px;
-    background: radial-gradient(900px 480px at 50% -12%, #1b2540 0%, var(--bg) 62%);
-    color: var(--text);
-    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
-  }
+}
+  * { box-sizing: border-box; }body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 44px 20px 72px;
+}
   .stage { max-width: 1080px; margin: 0 auto; }
   .head {
     display: flex;

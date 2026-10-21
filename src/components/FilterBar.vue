@@ -83,29 +83,8 @@ function pick(kind: 'category' | 'scene', key: string) {
   color: var(--muted);
 }
 
-.chip {
-  display: inline-flex;
-  flex: 0 0 auto;
-  gap: 6px;
-  align-items: center;
-  white-space: nowrap;
-  padding: 5px 11px;
-  border: 1px solid var(--line-soft);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 12.5px;
-  cursor: pointer;
-  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+.chip__n {
+  font-size: 10.5px;
+  opacity: 0.65;
 }
-
-.chip:hover { color: var(--text); border-color: var(--line); }
-
-.chip--on {
-  border-color: rgba(94, 234, 212, 0.5);
-  background: var(--accent-dim);
-  color: var(--accent);
-}
-
-.chip__n { font-size: 10.5px; opacity: 0.65; }
 </style>

@@ -125,7 +125,10 @@ function checkDemoExternal(html, id) {
 
 async function main() {
   const entries = await fs.readdir(EFFECTS_DIR, { withFileTypes: true })
-  const dirs = entries.filter((e) => e.isDirectory()).map((e) => e.name).sort()
+  const dirs = entries
+    .filter((e) => e.isDirectory() && e.name !== 'shared')
+    .map((e) => e.name)
+    .sort()
 
   const ids = new Set()
   const blocks = []
@@ -214,6 +217,15 @@ async function main() {
     const outDir = path.join(PUBLIC_DIR, 'effects', d.id)
     await fs.mkdir(outDir, { recursive: true })
     await fs.writeFile(path.join(outDir, 'demo.html'), d.html, 'utf8')
+  }
+
+  // 共享基础层：demo 通过 <link href="../shared/base.css"> 引用
+  const sharedSrc = path.join(EFFECTS_DIR, 'shared')
+  const sharedOut = path.join(PUBLIC_DIR, 'effects', 'shared')
+  try {
+    await fs.cp(sharedSrc, sharedOut, { recursive: true })
+  } catch {
+    warn('未找到 effects/shared/ 共享基础层')
   }
 
   const catalog = {

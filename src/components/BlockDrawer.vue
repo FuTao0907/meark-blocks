@@ -84,13 +84,13 @@ onBeforeUnmount(() => {
           <p class="page__aka">{{ block.aka.join(' / ') }}</p>
         </div>
         <div class="page__actions">
-          <button type="button" class="btn btn--primary btn--sm" @click="copy(universalPrompt, 'universal')">
+          <button type="button" class="btn btn--primary" @click="copy(universalPrompt, 'universal')">
             {{ copiedKey === 'universal' ? '已复制 ✓' : '复制通用提示词' }}
           </button>
-          <button type="button" class="btn btn--sm" @click="copy(fullPrompt, 'full')">
+          <button type="button" class="btn" @click="copy(fullPrompt, 'full')">
             {{ copiedKey === 'full' ? '已复制 ✓' : '复制 + 技术栈适配' }}
           </button>
-          <button type="button" class="btn btn--ghost btn--sm" @click="fullscreen = true">全屏预览</button>
+          <button type="button" class="btn btn--ghost" @click="fullscreen = true">全屏预览</button>
           <button type="button" class="page__close" aria-label="关闭" @click="emit('close')">×</button>
         </div>
       </header>
@@ -171,7 +171,7 @@ onBeforeUnmount(() => {
   z-index: 51;
   display: flex;
   flex-direction: column;
-  background: #0b1222;
+  background: var(--bg);
   animation: page-in 200ms ease;
 }
 
@@ -188,7 +188,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   padding: 16px 24px;
   border-bottom: 1px solid var(--line-soft);
-  background: rgba(11, 18, 34, 0.94);
+  background: var(--bg);
 }
 
 .page__cat { font-size: 11px; letter-spacing: 1px; color: var(--accent); }
@@ -203,7 +203,7 @@ onBeforeUnmount(() => {
   width: 34px;
   height: 34px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius-field);
   background: transparent;
   color: var(--muted);
   font-size: 20px;
@@ -234,8 +234,8 @@ onBeforeUnmount(() => {
   overflow: hidden;
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: #0d1324;
+  border-radius: var(--radius-field);
+  background: var(--bg);
 }
 
 .stage iframe {
@@ -271,12 +271,12 @@ onBeforeUnmount(() => {
 .motion-warn {
   padding: 8px 10px;
   border: 1px solid rgba(251, 191, 36, 0.32);
-  border-radius: 8px;
+  border-radius: var(--radius-field);
   background: rgba(251, 191, 36, 0.08);
   color: #d9b56b;
 }
 
-.fs { position: fixed; inset: 0; z-index: 60; background: #0b1022; }
+.fs { position: fixed; inset: 0; z-index: 60; background: var(--bg); }
 
 .fs iframe { display: block; width: 100%; height: 100%; border: 0; }
 
@@ -288,7 +288,7 @@ onBeforeUnmount(() => {
   width: 38px;
   height: 38px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius-field);
   background: rgba(11, 17, 30, 0.9);
   color: var(--text);
   font-size: 22px;
@@ -308,7 +308,7 @@ onBeforeUnmount(() => {
   gap: 3px;
   padding: 9px 11px;
   border: 1px solid var(--line-soft);
-  border-radius: 9px;
+  border-radius: var(--radius-field);
   font-size: 12px;
 }
 
@@ -352,7 +352,7 @@ code {
   margin: 0;
   padding: 14px;
   border: 1px solid var(--line-soft);
-  border-radius: 9px;
+  border-radius: var(--radius-field);
   background: rgba(11, 17, 30, 0.7);
   font-family: var(--mono);
   font-size: 11.5px;
@@ -370,3 +370,7 @@ code {
   .meta-grid { grid-template-columns: 1fr; }
 }
 </style>
+
+
+
+

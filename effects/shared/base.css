@@ -1,0 +1,73 @@
+/* 积木库 · demo 共享基础层
+ * 只放所有演示共用的部分：设计 token、盒模型、页面底色、字体栈、滚动条。
+ * 每个 demo 只保留自己效果相关的样式，不在这里统一样式。
+ */
+
+:root {
+  --bg: #080c17;
+  --bg-soft: #0d1324;
+  --panel: #111a2e;
+  --card: #141a2e;
+  --line: #22304d;
+  --line-soft: #1a2540;
+  --text: #e8eefb;
+  --muted: #8b9ab8;
+  --accent: #5eead4;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --font: "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 自绘滚动条：与主站保持一致 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #26314e transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+  background: #26314e;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a4d78;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

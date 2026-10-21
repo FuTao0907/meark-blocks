@@ -29,17 +29,16 @@ function onInput(event: Event) {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 14px;
-  height: 50px;
+  height: 44px;
+  padding: 0 12px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: rgba(17, 26, 46, 0.72);
-  transition: border-color 160ms ease, background 160ms ease;
+  border-radius: var(--radius-field);
+  background: var(--panel);
+  transition: border-color 160ms ease;
 }
 
 .search:focus-within {
   border-color: var(--accent);
-  background: rgba(17, 26, 46, 0.95);
 }
 
 .search__icon { color: var(--muted); font-size: 18px; line-height: 1; }
@@ -61,7 +60,7 @@ function onInput(event: Event) {
 .search__clear {
   padding: 4px 9px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--muted);
   font-size: 12px;
@@ -70,3 +69,4 @@ function onInput(event: Event) {
 
 .search__clear:hover { color: var(--text); border-color: var(--accent); }
 </style>
+

@@ -63,7 +63,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
         <div class="composer__bar">
           <span>生成结果</span>
           <div class="composer__bar-actions">
-            <button type="button" class="btn btn--ghost btn--sm" @click="toggleEditable">
+            <button type="button" class="btn btn--ghost" @click="toggleEditable">
               {{ editable ? '只读' : '编辑' }}
             </button>
           </div>
@@ -97,8 +97,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   overflow-y: auto;
   padding: 22px 24px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: #0b1222;
+  border-radius: var(--radius-card);
+  background: var(--panel);
   box-shadow: var(--shadow);
   transform: translate(-50%, -50%);
   animation: pop-in 200ms ease;
@@ -122,7 +122,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   width: 32px;
   height: 32px;
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: var(--radius-field);
   background: transparent;
   color: var(--muted);
   font-size: 19px;
@@ -134,17 +134,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 .composer__chips { display: flex; flex-wrap: wrap; gap: 7px; }
 
-.chip {
-  display: inline-flex;
-  gap: 7px;
-  align-items: center;
-  padding: 4px 6px 4px 11px;
-  border: 1px solid rgba(94, 234, 212, 0.4);
-  border-radius: 999px;
-  background: var(--accent-dim);
-  color: var(--accent);
-  font-size: 12px;
-}
+.composer__chips .chip { padding-right: 5px; }
 
 .chip button {
   display: grid;
@@ -163,10 +153,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 .composer__field { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--muted); }
 
 .composer__field input {
-  padding: 9px 12px;
+  height: 36px;
+  padding: 0 12px;
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel);
+  border-radius: var(--radius-field);
+  background: var(--bg);
   color: var(--text);
   font-size: 13px;
   outline: none;
@@ -219,3 +210,5 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 .composer__foot { display: flex; gap: 9px; justify-content: flex-end; }
 </style>
+
+

@@ -25,41 +25,16 @@
     }
   })()
 </script>
-<style>
-  /* 统一的自绘滚动条，避免系统默认样式破坏深色版式 */
-  * { scrollbar-width: thin; scrollbar-color: #2b3a5c transparent; }
-  ::-webkit-scrollbar { width: 9px; height: 9px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb {
-    border: 2px solid transparent;
-    border-radius: 999px;
-    background: #2b3a5c;
-    background-clip: content-box;
-  }
-  ::-webkit-scrollbar-thumb:hover { background: #3a4d78; background-clip: content-box; }
-</style>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../shared/base.css" />
 <title>滚动视差 · demo</title>
 <style>
-  :root {
-    --bg: #0b1020;
-    --card: #141a2e;
-    --line: #22304d;
-    --text: #e6ebf5;
-    --muted: #8d9ab5;
-    --accent: #5eead4;
-  }
+  
 
-  * { box-sizing: border-box; }
-
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
+  * { box-sizing: border-box; }body {
+  margin: 0;
+}
 
   /* ---------- 开篇 ---------- */
   .intro {
@@ -127,7 +102,7 @@
     top: 0;
     height: 100vh;
     overflow: hidden;
-    background: radial-gradient(120% 90% at 50% 0%, #101a33 0%, #0b1020 64%);
+    background: radial-gradient(120% 90% at 50% 0%, #101a33 0%, var(--bg) 64%);
     border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
   }

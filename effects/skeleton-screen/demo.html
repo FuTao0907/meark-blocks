@@ -25,43 +25,20 @@
     }
   })()
 </script>
-<style>
-  /* 统一的自绘滚动条，避免系统默认样式破坏深色版式 */
-  * { scrollbar-width: thin; scrollbar-color: #2b3a5c transparent; }
-  ::-webkit-scrollbar { width: 9px; height: 9px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb {
-    border: 2px solid transparent;
-    border-radius: 999px;
-    background: #2b3a5c;
-    background-clip: content-box;
-  }
-  ::-webkit-scrollbar-thumb:hover { background: #3a4d78; background-clip: content-box; }
-</style>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="../shared/base.css" />
 <title>骨架屏 · demo</title>
 <style>
   :root {
-    --bg: #0b1020;
-    --card: #141a2e;
-    --line: #22304d;
-    --text: #e6ebf5;
-    --muted: #8d9ab5;
-    --accent: #5eead4;
     --skel: #1d2740;
     color-scheme: dark;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    min-height: 100vh;
-    padding: 44px 20px 72px;
-    background: radial-gradient(900px 520px at 50% -8%, #1a2440 0%, var(--bg) 62%);
-    color: var(--text);
-    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
+}
+  * { box-sizing: border-box; }body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 44px 20px 72px;
+}
   .page { width: min(880px, 100%); margin: 0 auto; }
   .intro h1 { margin: 0 0 8px; font-size: 24px; letter-spacing: .4px; }
   .intro p { margin: 0 0 24px; max-width: 640px; color: var(--muted); font-size: 13px; line-height: 1.75; }
@@ -214,7 +191,9 @@
   }
 
   @media (max-width: 560px) {
-    body { padding: 28px 14px 56px; }
+body {
+  padding: 28px 14px 56px;
+}
     .stage { padding: 12px; }
     .card { padding: 16px; }
     .skel-sub { width: 140px; }

@@ -56,6 +56,12 @@ effects/hover-spotlight/
 
 如果你的描述确实需要提到某个框架，把它写进 `adapters/<stack>.md`，而不是 `prompt.md`。
 
+## 设计系统
+
+- **主站外壳**：`src/styles/main.css` 定义唯一一套 token（`--bg / --panel / --line / --text / --muted / --accent`）、三档圆角（`--radius-field / --radius-card / --radius-pill`）和三个控件类：`.chip`（标签/筛选项共用）、`.btn`（只有 primary 与 ghost）、`.field`（输入框与下拉共用）。
+- **demo 共享基础层**：`effects/shared/base.css` 提供同一套 token、字体栈、页面底色与滚动条；每个 demo 通过 `<link rel="stylesheet" href="../shared/base.css" />` 引用，构建时自动复制到 `public/effects/shared/`。
+- **重要规则**：**不要统一 demo 内部的按钮、卡片、标签样式**。玻璃拟态、磁吸按钮、数据卡片各自的表现正是这个库的内容，统一了演示就失去意义。
+
 ## 演示动效开关
 
 demo 默认遵循系统「减少动态效果」（`prefers-reduced-motion`）。如果你的系统开了这个选项，动画类 demo 会显示为静态降级版。
