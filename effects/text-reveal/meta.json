@@ -1,0 +1,20 @@
+{
+  "id": "text-reveal",
+  "name": "文字逐行入场",
+  "aka": ["逐行浮现", "标题分行入场", "文字上浮", "line reveal", "staggered text"],
+  "category": "animation",
+  "subcategory": "text",
+  "scenes": ["landing", "marketing", "portfolio"],
+  "feel": ["premium", "subtle"],
+  "params": [
+    { "key": "stagger", "label": "行间隔", "default": 120, "type": "number", "unit": "ms" },
+    { "key": "duration", "label": "单行时长", "default": 600, "type": "number", "unit": "ms" },
+    { "key": "distance", "label": "起始位移", "default": 24, "type": "number", "unit": "px" },
+    { "key": "startDelay", "label": "整组延迟", "default": 0, "type": "number", "unit": "ms" }
+  ],
+  "a11y": "prefers-reduced-motion 下文字直接以最终位置显示，不做位移与淡入",
+  "notFor": ["需要逐字强调的短句", "长段正文逐行打散", "滚动时反复重播的区块"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

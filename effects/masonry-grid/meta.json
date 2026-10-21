@@ -1,0 +1,19 @@
+{
+  "id": "masonry-grid",
+  "name": "瀑布流布局",
+  "aka": ["瀑布流", "不等高网格", "masonry layout", "砌体布局"],
+  "category": "layout",
+  "subcategory": "grid",
+  "scenes": ["portfolio", "marketing"],
+  "feel": ["minimal", "premium"],
+  "params": [
+    { "key": "columns", "label": "桌面端列数", "default": 3, "type": "number" },
+    { "key": "gap", "label": "卡片间距", "default": 16, "type": "number", "unit": "px" },
+    { "key": "reflowMs", "label": "重排位移时长", "default": 280, "type": "number", "unit": "ms" }
+  ],
+  "a11y": "prefers-reduced-motion 下取消重排位移，卡片直接落到新位置；键盘焦点顺序始终等于 DOM 顺序",
+  "notFor": ["需要严格对齐的行列对照表", "高度一致的商品列表（普通等高网格更省事）", "需要逐行比较的财务数据"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

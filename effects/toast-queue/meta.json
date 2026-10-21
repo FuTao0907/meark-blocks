@@ -1,0 +1,20 @@
+{
+  "id": "toast-queue",
+  "name": "Toast 队列",
+  "aka": ["轻提示队列", "消息通知", "toast 堆叠", "通知排队", "消息提示"],
+  "category": "feedback",
+  "subcategory": "notify",
+  "scenes": ["dashboard", "form"],
+  "feel": ["minimal"],
+  "params": [
+    { "key": "duration", "label": "单条停留时长", "default": 3200, "type": "number", "unit": "ms" },
+    { "key": "maxVisible", "label": "同屏最大条数", "default": 3, "type": "number" },
+    { "key": "maxQueue", "label": "排队上限", "default": 6, "type": "number" },
+    { "key": "mergeSame", "label": "合并相同文案（1 开 0 关）", "default": 1, "type": "number" }
+  ],
+  "a11y": "prefers-reduced-motion 下取消滑入、位移与缩放动画，通知直接出现与移除，停留时长保持不变",
+  "notFor": ["必须让用户确认的破坏性操作", "需要阅读长段落的业务通知", "同一时刻只允许一条的系统级弹窗"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

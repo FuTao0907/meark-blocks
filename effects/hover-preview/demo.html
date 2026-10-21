@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>悬停预览 · demo</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: #141a2e;
+    --line: #22304d;
+    --text: #e6ebf5;
+    --muted: #8d9ab5;
+    --accent: #5eead4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 40px 20px;
+    background:
+      radial-gradient(820px 460px at 46% -10%, #1a2542 0%, transparent 72%),
+      radial-gradient(540px 380px at 92% 104%, rgba(124, 156, 255, 0.08), transparent 70%),
+      var(--bg);
+    color: var(--text);
+    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  }
+
+  .board {
+    width: min(660px, 100%);
+    padding: 30px 30px 16px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: linear-gradient(180deg, #161d33 0%, #11162a 100%);
+    box-shadow: 0 28px 74px rgba(3, 8, 20, 0.6);
+  }
+  .board__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .eyebrow {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 8px 0 0;
+    font-size: clamp(24px, 3.4vw, 30px);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  .board__count {
+    margin: 0 0 3px;
+    color: #7f8ca8;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .lede {
+    margin: 14px 0 22px;
+    max-width: 52ch;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  .list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid rgba(34, 48, 77, 0.9);
+  }
+  .row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) auto auto 18px;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 10px 14px 12px;
+    border: 0;
+    border-bottom: 1px solid rgba(34, 48, 77, 0.62);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 160ms ease;
+  }
+  .row::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transform-origin: center;
+    transition: transform 160ms ease;
+  }
+  .row:hover,
+  .row.is-active { background: rgba(94, 234, 212, 0.055); }
+  .row:hover::before,
+  .row.is-active::before { transform: scaleY(1); }
+  .row:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+    background: rgba(94, 234, 212, 0.055);
+  }
+  .row__index {
+    color: #7f8ca8;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .row__title {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .row__sub {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .row__tag {
+    padding: 3px 8px;
+    border: 1px solid rgba(94, 234, 212, 0.18);
+    border-radius: 999px;
+    background: rgba(94, 234, 212, 0.08);
+    color: var(--accent);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .row__year {
+    color: #7f8ca8;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .row__arrow {
+    color: #7f8ca8;
+    transition: transform 160ms ease, color 160ms ease;
+  }
+  .row:hover .row__arrow,
+  .row.is-active .row__arrow {
+    color: var(--accent);
+    transform: translateX(3px);
+  }
+
+  .board__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding: 14px 2px 4px;
+    color: #7f8ca8;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+
+  .preview {
+    --preview-scale: 1.04;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 20;
+    width: min(302px, calc(100vw - 36px));
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--card);
+    box-shadow: 0 26px 60px rgba(3, 8, 20, 0.62), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(8px) scale(0.97);
+    transform-origin: left center;
+    transition: opacity 140ms ease, transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+  }
+  .preview.is-open {
+    opacity: 1;
+    transform: translateY(0) scale(var(--preview-scale));
+  }
+  .preview__art {
+    position: relative;
+    height: 148px;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--a, #5eead4), var(--b, #3b82f6));
+  }
+  .preview__art::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(8, 16, 30, 0.16) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(8, 16, 30, 0.16) 1px, transparent 1px);
+    background-size: 26px 26px;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 90%);
+    mask-image: linear-gradient(180deg, transparent 0%, #000 90%);
+  }
+  .preview__art::after {
+    content: "";
+    position: absolute;
+    right: -34px;
+    top: -48px;
+    width: 170px;
+    height: 170px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    box-shadow: 0 0 0 26px rgba(255, 255, 255, 0.08), 0 0 0 58px rgba(255, 255, 255, 0.05);
+  }
+  .preview__mark {
+    position: absolute;
+    right: 14px;
+    bottom: 4px;
+    color: rgba(7, 16, 28, 0.34);
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.05em;
+  }
+  .preview__body { padding: 16px 18px 17px; }
+  .preview__top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .preview__title {
+    margin: 0;
+    font-size: 16px;
+    letter-spacing: 0.01em;
+  }
+  .preview__year {
+    color: #7f8ca8;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+  .preview__desc {
+    margin: 8px 0 14px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.75;
+  }
+  .preview__tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .preview__tags span {
+    padding: 3px 8px;
+    border: 1px solid rgba(94, 234, 212, 0.16);
+    border-radius: 999px;
+    color: #9fb4cf;
+    font-size: 10.5px;
+  }
+
+  @media (max-width: 560px) {
+    .board { padding: 24px 18px 12px; }
+    .row { grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; }
+    .row__tag { display: none; }
+    .row__year { display: none; }
+    .row__arrow { display: none; }
+    .lede { font-size: 12.5px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .preview {
+      transition: opacity 120ms linear;
+      transform: none !important;
+    }
+    .row,
+    .row::before,
+    .row__arrow { transition: none; }
+    .row:hover .row__arrow,
+    .row.is-active .row__arrow { transform: none; }
+  }
+</style>
+</head>
+<body>
+  <main class="board" data-delay="120" data-scale="1.04" data-offset="18">
+    <header class="board__head">
+      <div>
+        <p class="eyebrow">interaction · hover</p>
+        <h1>悬停预览</h1>
+      </div>
+      <p class="board__count">5 个项目</p>
+    </header>
+    <p class="lede">把鼠标停在任意一行，等待 120ms 会浮出项目预览；在行间移动时预览直接切换。键盘 Tab 聚焦同样可见。</p>
+
+    <ul class="list">
+      <li>
+        <button class="row" type="button" data-key="atlas">
+          <span class="row__index">01</span>
+          <span class="row__main">
+            <span class="row__title">Atlas 数据台</span>
+            <span class="row__sub">面向运营的实时指标看板</span>
+          </span>
+          <span class="row__tag">Dashboard</span>
+          <span class="row__year">2026</span>
+          <span class="row__arrow" aria-hidden="true">→</span>
+        </button>
+      </li>
+      <li>
+        <button class="row" type="button" data-key="lumen">
+          <span class="row__index">02</span>
+          <span class="row__main">
+            <span class="row__title">Lumen 品牌站</span>
+            <span class="row__sub">以光影为线索的品牌叙事页</span>
+          </span>
+          <span class="row__tag">Branding</span>
+          <span class="row__year">2025</span>
+          <span class="row__arrow" aria-hidden="true">→</span>
+        </button>
+      </li>
+      <li>
+        <button class="row" type="button" data-key="orbit">
+          <span class="row__index">03</span>
+          <span class="row__main">
+            <span class="row__title">Orbit 移动端</span>
+            <span class="row__sub">行程与协作合一的移动应用</span>
+          </span>
+          <span class="row__tag">Product</span>
+          <span class="row__year">2026</span>
+          <span class="row__arrow" aria-hidden="true">→</span>
+        </button>
+      </li>
+      <li>
+        <button class="row" type="button" data-key="harbor">
+          <span class="row__index">04</span>
+          <span class="row__main">
+            <span class="row__title">Harbor 控制台</span>
+            <span class="row__sub">多云资源的统一管理界面</span>
+          </span>
+          <span class="row__tag">System</span>
+          <span class="row__year">2024</span>
+          <span class="row__arrow" aria-hidden="true">→</span>
+        </button>
+      </li>
+      <li>
+        <button class="row" type="button" data-key="pulse">
+          <span class="row__index">05</span>
+          <span class="row__main">
+            <span class="row__title">Pulse 活动页</span>
+            <span class="row__sub">音乐节票务与日程落地页</span>
+          </span>
+          <span class="row__tag">Campaign</span>
+          <span class="row__year">2025</span>
+          <span class="row__arrow" aria-hidden="true">→</span>
+        </button>
+      </li>
+    </ul>
+
+    <footer class="board__foot">
+      <span>delay 120ms</span>
+      <span>scale 1.04</span>
+      <span>offset 18px</span>
+      <span>触摸设备不启用</span>
+    </footer>
+  </main>
+
+  <div class="preview" aria-hidden="true">
+    <div class="preview__art"><span class="preview__mark">A</span></div>
+    <div class="preview__body">
+      <div class="preview__top">
+        <h2 class="preview__title">Atlas 数据台</h2>
+        <span class="preview__year">2026</span>
+      </div>
+      <p class="preview__desc">把留存、转化与营收放进同一块实时看板，支持按渠道下钻与异常标注。</p>
+      <div class="preview__tags"><span>Dashboard</span><span>Realtime</span></div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const DATA = {
+    atlas: {
+      title: 'Atlas 数据台',
+      year: '2026',
+      desc: '把留存、转化与营收放进同一块实时看板，支持按渠道下钻与异常标注。',
+      tags: ['Dashboard', 'Realtime'],
+      from: '#5eead4',
+      to: '#3b82f6',
+      mark: 'A'
+    },
+    lumen: {
+      title: 'Lumen 品牌站',
+      year: '2025',
+      desc: '用大尺度光影与滚动章节讲品牌故事，首屏只保留一句主张和一个入口。',
+      tags: ['Branding', 'Web'],
+      from: '#f5c76b',
+      to: '#f97362',
+      mark: 'L'
+    },
+    orbit: {
+      title: 'Orbit 移动端',
+      year: '2026',
+      desc: '把行程、票据与同行者协作收进一个时间轴，离线状态下仍可查看关键信息。',
+      tags: ['Product', 'Mobile'],
+      from: '#7c9cff',
+      to: '#a855f7',
+      mark: 'O'
+    },
+    harbor: {
+      title: 'Harbor 控制台',
+      year: '2024',
+      desc: '多云资源的统一入口，按环境分组展示配额、告警与最近一次发布记录。',
+      tags: ['System', 'B2B'],
+      from: '#5eead4',
+      to: '#22d3ee',
+      mark: 'H'
+    },
+    pulse: {
+      title: 'Pulse 活动页',
+      year: '2025',
+      desc: '音乐节票务与日程的落地页，用舞台时间线替代传统长列表，移动端优先。',
+      tags: ['Campaign', 'Landing'],
+      from: '#f472b6',
+      to: '#8b5cf6',
+      mark: 'P'
+    }
+  }
+
+  const board = document.querySelector('.board')
+  const preview = document.querySelector('.preview')
+  if (!board || !preview) return
+
+  const rows = Array.from(board.querySelectorAll('.row'))
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)')
+  const canHover = window.matchMedia('(hover: hover) and (pointer: fine)')
+  const delay = Number(board.dataset.delay) || 120
+  const scale = Number(board.dataset.scale) || 1.04
+  const offset = Number(board.dataset.offset) || 18
+
+  const art = preview.querySelector('.preview__art')
+  const mark = preview.querySelector('.preview__mark')
+  const titleEl = preview.querySelector('.preview__title')
+  const yearEl = preview.querySelector('.preview__year')
+  const descEl = preview.querySelector('.preview__desc')
+  const tagsEl = preview.querySelector('.preview__tags')
+
+  preview.style.setProperty('--preview-scale', String(scale))
+
+  const controller = new AbortController()
+  const signal = controller.signal
+  let showTimer = 0
+  let hideTimer = 0
+  let openRow = null
+
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
+
+  function clearShow() {
+    if (showTimer) {
+      clearTimeout(showTimer)
+      showTimer = 0
+    }
+  }
+
+  function clearHide() {
+    if (hideTimer) {
+      clearTimeout(hideTimer)
+      hideTimer = 0
+    }
+  }
+
+  function fill(data) {
+    art.style.setProperty('--a', data.from)
+    art.style.setProperty('--b', data.to)
+    mark.textContent = data.mark
+    titleEl.textContent = data.title
+    yearEl.textContent = data.year
+    descEl.textContent = data.desc
+    tagsEl.replaceChildren(...data.tags.map((tag) => {
+      const span = document.createElement('span')
+      span.textContent = tag
+      return span
+    }))
+  }
+
+  function position(row) {
+    const rect = row.getBoundingClientRect()
+    const width = preview.offsetWidth
+    const height = preview.offsetHeight
+    const gutter = 16
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+
+    const rightLeft = rect.right + offset
+    const leftLeft = rect.left - width - offset
+    const rightFits = rightLeft + width + gutter <= vw
+    const leftFits = leftLeft >= gutter
+
+    let left
+    let origin
+    if (rightFits) {
+      left = rightLeft
+      origin = 'left center'
+    } else if (leftFits) {
+      left = leftLeft
+      origin = 'right center'
+    } else if (vw - rect.right >= rect.left) {
+      left = vw - width - gutter
+      origin = 'right center'
+    } else {
+      left = gutter
+      origin = 'left center'
+    }
+    left = clamp(left, gutter, Math.max(gutter, vw - width - gutter))
+
+    const top = clamp(
+      rect.top + rect.height / 2 - height / 2,
+      gutter,
+      Math.max(gutter, vh - height - gutter)
+    )
+
+    preview.style.left = Math.round(left) + 'px'
+    preview.style.top = Math.round(top) + 'px'
+    preview.style.transformOrigin = origin
+  }
+
+  function closePreview() {
+    clearShow()
+    clearHide()
+    if (openRow) openRow.classList.remove('is-active')
+    openRow = null
+    preview.classList.remove('is-open')
+    preview.setAttribute('aria-hidden', 'true')
+  }
+
+  function openPreview(row) {
+    const data = DATA[row.dataset.key]
+    if (!data) return
+    clearShow()
+    clearHide()
+    if (openRow === row) {
+      position(row)
+      return
+    }
+    if (openRow) openRow.classList.remove('is-active')
+    fill(data)
+    position(row)
+    preview.classList.add('is-open')
+    row.classList.add('is-active')
+    openRow = row
+  }
+
+  function scheduleOpen(row) {
+    clearShow()
+    clearHide()
+    if (openRow === row) {
+      position(row)
+      return
+    }
+    if (openRow) {
+      openPreview(row)
+      return
+    }
+    const wait = reduce.matches ? 0 : delay
+    showTimer = window.setTimeout(() => {
+      showTimer = 0
+      openPreview(row)
+    }, wait)
+  }
+
+  function scheduleHide() {
+    clearShow()
+    if (!openRow) return
+    clearHide()
+    hideTimer = window.setTimeout(() => {
+      hideTimer = 0
+      if (openRow && openRow.matches(':focus-visible')) return
+      closePreview()
+    }, 140)
+  }
+
+  rows.forEach((row) => {
+    row.addEventListener('pointerenter', (event) => {
+      if (!canHover.matches) return
+      if (event.pointerType && event.pointerType !== 'mouse') return
+      scheduleOpen(row)
+    }, { signal })
+
+    row.addEventListener('pointerleave', (event) => {
+      if (event.pointerType && event.pointerType !== 'mouse') return
+      scheduleHide()
+    }, { signal })
+
+    row.addEventListener('focus', () => {
+      scheduleOpen(row)
+    }, { signal })
+
+    row.addEventListener('blur', () => {
+      scheduleHide()
+    }, { signal })
+  })
+
+  window.addEventListener('scroll', closePreview, { passive: true, signal })
+  window.addEventListener('resize', closePreview, { signal })
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closePreview()
+  }, { signal })
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) closePreview()
+  }, { signal })
+
+  function destroy() {
+    controller.abort()
+    clearShow()
+    clearHide()
+    closePreview()
+    window.removeEventListener('pagehide', destroy)
+  }
+  window.addEventListener('pagehide', destroy)
+})()
+</script>
+</body>
+</html>

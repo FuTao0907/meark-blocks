@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bento 网格 · demo</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: #141a2e;
+    --line: #22304d;
+    --text: #e6ebf5;
+    --muted: #8d9ab5;
+    --accent: #5eead4;
+    --gap: 12px;
+    --radius: 16px;
+    --morph: 320ms;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 44px 20px 72px;
+    background: radial-gradient(920px 500px at 50% -14%, #1b2540 0%, var(--bg) 62%);
+    color: var(--text);
+    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  }
+  .stage { max-width: 980px; margin: 0 auto; }
+
+  .head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  h1 { margin: 0 0 6px; font-size: 20px; letter-spacing: .02em; }
+  .hint { margin: 0; max-width: 560px; font-size: 12.5px; line-height: 1.8; color: var(--muted); }
+  .hint b { color: var(--accent); font-weight: 600; }
+  .tools { display: flex; align-items: center; gap: 12px; }
+  .state { font-size: 11.5px; letter-spacing: .04em; color: var(--muted); }
+  .switch {
+    padding: 9px 16px;
+    border: 1px solid rgba(94, 234, 212, .4);
+    border-radius: 999px;
+    background: rgba(94, 234, 212, .08);
+    color: var(--accent);
+    font: inherit;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: background-color 160ms ease, border-color 160ms ease;
+  }
+  .switch:hover { background: rgba(94, 234, 212, .16); border-color: var(--accent); }
+  .switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(3, 132px);
+    grid-template-areas:
+      "a a b c"
+      "a a d d"
+      "e f g g";
+    gap: var(--gap);
+  }
+  .bento[data-template="b"] {
+    grid-template-areas:
+      "a b d d"
+      "e f c c"
+      "g g c c";
+  }
+  .bento [data-slot="a"] { grid-area: a; }
+  .bento [data-slot="b"] { grid-area: b; }
+  .bento [data-slot="c"] { grid-area: c; }
+  .bento [data-slot="d"] { grid-area: d; }
+  .bento [data-slot="e"] { grid-area: e; }
+  .bento [data-slot="f"] { grid-area: f; }
+  .bento [data-slot="g"] { grid-area: g; }
+
+  .cell {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 16px 16px 15px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--card);
+    overflow: hidden;
+    transition: transform var(--morph) cubic-bezier(.2, .8, .2, 1), border-color 180ms ease,
+      background-color 180ms ease;
+  }
+  .cell:hover { border-color: #2f4468; background-color: #161d33; }
+
+  .cell__label {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: var(--muted);
+  }
+  .value {
+    margin: 8px 0 0;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    font-variant-numeric: tabular-nums;
+  }
+  .cell__note { margin: 6px 0 0; font-size: 11.5px; line-height: 1.6; color: var(--muted); }
+
+  .bars {
+    display: none;
+    align-items: flex-end;
+    gap: 4px;
+    height: 40px;
+    margin-top: auto;
+    padding-top: 10px;
+  }
+  .bars i {
+    flex: 1;
+    border-radius: 3px 3px 2px 2px;
+    background: linear-gradient(180deg, rgba(94, 234, 212, .6), rgba(94, 234, 212, .12));
+  }
+
+  .rows { display: grid; gap: 5px; margin-top: auto; padding-top: 8px; }
+  .rows span { display: flex; align-items: center; gap: 8px; line-height: 1.15; }
+  .rows em { width: 52px; flex: none; font-style: normal; font-size: 10.5px; color: var(--muted); }
+  .rows b { height: 6px; border-radius: 999px; background: rgba(94, 234, 212, .5); }
+  .rows i { font-style: normal; font-size: 10.5px; color: #6b7794; }
+
+  .meter { height: 8px; margin-top: auto; border-radius: 999px; background: #1d2740; overflow: hidden; }
+  .meter span { display: block; width: 82%; height: 100%; border-radius: inherit; background: var(--accent); }
+
+  .bento[data-template="a"] [data-slot="a"],
+  .bento[data-template="b"] [data-slot="c"] {
+    padding: 18px 18px 16px;
+    border-color: rgba(94, 234, 212, .34);
+    background-image: linear-gradient(160deg, #17253c, #141a2e 64%);
+  }
+  .bento[data-template="a"] [data-slot="a"] .value,
+  .bento[data-template="b"] [data-slot="c"] .value {
+    font-size: clamp(30px, 4.4vw, 46px);
+  }
+  .bento[data-template="a"] [data-slot="a"] .cell__label,
+  .bento[data-template="b"] [data-slot="c"] .cell__label { color: var(--accent); }
+  .bento[data-template="a"] [data-slot="a"] .bars,
+  .bento[data-template="b"] [data-slot="c"] .bars { display: flex; height: 62px; }
+
+  @media (max-width: 760px) {
+    .bento {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(5, 120px);
+      grid-template-areas:
+        "a a"
+        "b c"
+        "d d"
+        "e f"
+        "g g";
+    }
+    .bento[data-template="b"] {
+      grid-template-areas:
+        "a b"
+        "c c"
+        "d d"
+        "e f"
+        "g g";
+    }
+    .cell { padding: 14px 14px 13px; }
+    .bento[data-template="a"] [data-slot="a"] .bars,
+    .bento[data-template="b"] [data-slot="c"] .bars { display: none; }
+    .bento[data-template="a"] [data-slot="a"] .value,
+    .bento[data-template="b"] [data-slot="c"] .value { font-size: 30px; }
+    .tools { width: 100%; justify-content: space-between; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cell, .switch { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <header class="head">
+      <div>
+        <h1>Bento 网格</h1>
+        <p class="hint">同一组指标可以在两种排布间切换：<b>排布 A</b> 的主格在左上，<b>排布 B</b> 的主格居中。点击按钮观察所有格子平移换位；窄屏下自动折成两列。</p>
+      </div>
+      <div class="tools">
+        <span class="state" data-state>排布 A · 主格左上</span>
+        <button class="switch" type="button" data-switch aria-pressed="false">切换排布</button>
+      </div>
+    </header>
+
+    <section class="bento" data-bento data-template="a" aria-label="季度指标看板">
+      <article class="cell" data-slot="a">
+        <p class="cell__label">转化总览</p>
+        <p class="value">68.4%</p>
+        <p class="cell__note">较上周 +4.2%</p>
+        <div class="bars" aria-hidden="true">
+          <i style="height: 46%"></i><i style="height: 62%"></i><i style="height: 54%"></i>
+          <i style="height: 78%"></i><i style="height: 70%"></i><i style="height: 92%"></i>
+          <i style="height: 84%"></i>
+        </div>
+      </article>
+
+      <article class="cell" data-slot="b">
+        <p class="cell__label">新增用户</p>
+        <p class="value">1,284</p>
+        <p class="cell__note">自然流量占 62%</p>
+      </article>
+
+      <article class="cell" data-slot="c">
+        <p class="cell__label">客单价</p>
+        <p class="value">¥268</p>
+        <p class="cell__note">复购 41% · 退款 0.8%</p>
+        <div class="bars" aria-hidden="true">
+          <i style="height: 38%"></i><i style="height: 52%"></i><i style="height: 60%"></i>
+          <i style="height: 48%"></i><i style="height: 74%"></i><i style="height: 88%"></i>
+          <i style="height: 66%"></i>
+        </div>
+      </article>
+
+      <article class="cell" data-slot="d">
+        <p class="cell__label">渠道分布</p>
+        <div class="rows">
+          <span><em>自然搜索</em><b style="width: 72%"></b><i>72%</i></span>
+          <span><em>内容推荐</em><b style="width: 54%"></b><i>54%</i></span>
+          <span><em>社群</em><b style="width: 38%"></b><i>38%</i></span>
+          <span><em>投放</em><b style="width: 26%"></b><i>26%</i></span>
+        </div>
+      </article>
+
+      <article class="cell" data-slot="e">
+        <p class="cell__label">次日留存</p>
+        <p class="value">52%</p>
+        <p class="cell__note">环比 +1.6pt</p>
+      </article>
+
+      <article class="cell" data-slot="f">
+        <p class="cell__label">退款率</p>
+        <p class="value">0.8%</p>
+        <p class="cell__note">低于 1.5% 阈值</p>
+      </article>
+
+      <article class="cell" data-slot="g">
+        <p class="cell__label">本周目标</p>
+        <p class="value">82%</p>
+        <div class="meter" role="img" aria-label="本周目标完成 82%"><span></span></div>
+        <p class="cell__note">距离目标还差 18%</p>
+      </article>
+    </section>
+  </div>
+
+<script>
+(() => {
+  const bento = document.querySelector('[data-bento]')
+  const button = document.querySelector('[data-switch]')
+  const state = document.querySelector('[data-state]')
+  if (!bento || !button) return
+
+  const cells = Array.from(bento.querySelectorAll('.cell'))
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)')
+  let rafId = 0
+
+  const move = (mutate) => {
+    if (reduce.matches) {
+      mutate()
+      return
+    }
+    // 先记录当前视觉位置（可能正处于上一次动画中）
+    const before = new Map()
+    cells.forEach((cell) => before.set(cell, cell.getBoundingClientRect()))
+
+    // 结束上一次未完成的动画，避免残留内联样式
+    if (rafId) {
+      cancelAnimationFrame(rafId)
+      rafId = 0
+    }
+    cells.forEach((cell) => {
+      cell.style.transition = 'none'
+      cell.style.transform = ''
+    })
+
+    mutate()
+
+    const moved = []
+    cells.forEach((cell) => {
+      const a = before.get(cell)
+      const b = cell.getBoundingClientRect()
+      const dx = a.left - b.left
+      const dy = a.top - b.top
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
+        cell.style.transition = ''
+        return
+      }
+      cell.style.transform = 'translate(' + dx.toFixed(2) + 'px, ' + dy.toFixed(2) + 'px)'
+      moved.push(cell)
+    })
+
+    if (!moved.length) return
+    rafId = requestAnimationFrame(() => {
+      rafId = 0
+      cells.forEach((cell) => {
+        cell.style.transition = ''
+        cell.style.transform = ''
+      })
+    })
+  }
+
+  const onSwitch = () => {
+    const next = bento.dataset.template === 'a' ? 'b' : 'a'
+    move(() => { bento.dataset.template = next })
+    button.setAttribute('aria-pressed', String(next === 'b'))
+    state.textContent = next === 'a' ? '排布 A · 主格左上' : '排布 B · 主格居中'
+  }
+
+  button.addEventListener('click', onSwitch)
+
+  const cleanup = () => {
+    if (rafId) {
+      cancelAnimationFrame(rafId)
+      rafId = 0
+    }
+    button.removeEventListener('click', onSwitch)
+    window.removeEventListener('pagehide', cleanup)
+  }
+
+  window.addEventListener('pagehide', cleanup)
+})()
+</script>
+</body>
+</html>

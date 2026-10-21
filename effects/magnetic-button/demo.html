@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>磁吸按钮 · demo</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: #141a2e;
+    --line: #22304d;
+    --text: #e6ebf5;
+    --muted: #8d9ab5;
+    --accent: #5eead4;
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 40px 20px;
+    background:
+      radial-gradient(760px 440px at 50% -8%, #1a2542 0%, transparent 72%),
+      radial-gradient(520px 360px at 88% 108%, rgba(94, 234, 212, 0.07), transparent 70%),
+      var(--bg);
+    color: var(--text);
+    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  }
+
+  .stage {
+    position: relative;
+    isolation: isolate;
+    width: min(620px, 100%);
+    padding: 44px 40px 34px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: linear-gradient(180deg, #161d33 0%, #101528 100%);
+    box-shadow: 0 28px 74px rgba(3, 8, 20, 0.6);
+    overflow: hidden;
+  }
+  .stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(141, 154, 181, 0.16) 1px, transparent 1px);
+    background-size: 22px 22px;
+    opacity: 0.55;
+    -webkit-mask-image: radial-gradient(420px 280px at 84% 6%, #000 0%, transparent 76%);
+    mask-image: radial-gradient(420px 280px at 84% 6%, #000 0%, transparent 76%);
+    pointer-events: none;
+  }
+  .stage > * { position: relative; z-index: 1; }
+
+  .eyebrow {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 10px 0 12px;
+    font-size: clamp(28px, 4.4vw, 38px);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+  .lede {
+    margin: 0 0 34px;
+    max-width: 48ch;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.85;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 32px;
+  }
+  .magnet {
+    --mx: 0px;
+    --my: 0px;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 52px;
+    padding: 0 26px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transform: translate3d(var(--mx), var(--my), 0);
+    transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease, filter 120ms ease;
+    will-change: transform;
+  }
+  .magnet:active { filter: brightness(0.94); }
+  .magnet:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .magnet--primary {
+    color: #052b25;
+    background: linear-gradient(180deg, #7ff3e2 0%, var(--accent) 100%);
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 12px 34px rgba(94, 234, 212, 0.22);
+  }
+  .magnet--primary:hover { box-shadow: 0 14px 42px rgba(94, 234, 212, 0.32); }
+  .ghost-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 52px;
+    padding: 0 4px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #9fb4cf;
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 160ms ease;
+  }
+  .ghost-link:hover { color: var(--accent); }
+  .ghost-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+  .magnet__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.6;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin: 30px 0 0;
+    padding-top: 18px;
+    border-top: 1px solid rgba(34, 48, 77, 0.7);
+    color: #7f8ca8;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+  }
+  .meta span { display: inline-flex; align-items: center; gap: 6px; }
+  .meta b { color: #aebbd4; font-weight: 600; }
+
+  @media (max-width: 560px) {
+    .stage { padding: 32px 22px 26px; }
+    .actions { flex-direction: column; align-items: stretch; gap: 28px; }
+    .magnet { width: 100%; }
+    .ghost-link { width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .magnet {
+      transform: none !important;
+      transition: filter 120ms ease;
+    }
+    .magnet__dot { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <main class="stage">
+    <p class="eyebrow">interaction · pointer</p>
+    <h1>磁吸按钮</h1>
+    <p class="lede">把指针移近按钮，它会朝你偏移；离开后回弹归位。键盘 Tab 聚焦时按钮不位移，只显示焦点环。</p>
+
+    <div class="actions">
+      <button class="magnet magnet--primary" type="button"
+              data-strength="0.3" data-radius="120" data-return-ms="420">
+        开始构建
+        <span class="magnet__dot" aria-hidden="true"></span>
+      </button>
+      <button class="ghost-link" type="button">
+        查看参数
+        <span aria-hidden="true">→</span>
+      </button>
+    </div>
+
+    <p class="meta">
+      <span>strength <b>0.3</b></span>
+      <span>radius <b>120px</b></span>
+      <span>return <b>420ms</b></span>
+      <span>鼠标指针生效</span>
+    </p>
+  </main>
+
+<script>
+(() => {
+  const stage = document.querySelector('.stage')
+  const buttons = stage ? Array.from(stage.querySelectorAll('.magnet')) : []
+  if (!stage || !buttons.length) return
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)')
+  const fine = window.matchMedia('(pointer: fine)')
+  const enabled = () => !reduce.matches && fine.matches
+
+  const states = buttons.map((el) => ({
+    el,
+    strength: Number(el.dataset.strength) || 0.3,
+    radius: Number(el.dataset.radius) || 120,
+    returnMs: Number(el.dataset.returnMs) || 420,
+    x: 0,
+    y: 0,
+    tx: 0,
+    ty: 0,
+    fromX: 0,
+    fromY: 0,
+    start: 0,
+    mode: 'idle'
+  }))
+
+  const controller = new AbortController()
+  const signal = controller.signal
+  let raf = 0
+  let pointerX = 0
+  let pointerY = 0
+
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
+  const maxOffset = 24
+
+  function paint(state) {
+    state.el.style.setProperty('--mx', state.x.toFixed(2) + 'px')
+    state.el.style.setProperty('--my', state.y.toFixed(2) + 'px')
+  }
+
+  function startReturn(state, time) {
+    if (state.mode !== 'follow') return
+    state.mode = 'return'
+    state.fromX = state.x
+    state.fromY = state.y
+    state.start = time
+  }
+
+  function frame(time) {
+    raf = 0
+    let busy = false
+    for (const state of states) {
+      if (state.mode === 'follow') {
+        state.x += (state.tx - state.x) * 0.22
+        state.y += (state.ty - state.y) * 0.22
+        if (Math.abs(state.tx - state.x) < 0.1) state.x = state.tx
+        if (Math.abs(state.ty - state.y) < 0.1) state.y = state.ty
+        paint(state)
+        if (state.x !== state.tx || state.y !== state.ty) busy = true
+      } else if (state.mode === 'return') {
+        const progress = Math.min(1, (time - state.start) / state.returnMs)
+        const eased = 1 - Math.pow(1 - progress, 3)
+        state.x = state.fromX * (1 - eased)
+        state.y = state.fromY * (1 - eased)
+        paint(state)
+        if (progress < 1) {
+          busy = true
+        } else {
+          state.x = 0
+          state.y = 0
+          state.mode = 'idle'
+          paint(state)
+        }
+      }
+    }
+    if (busy) raf = requestAnimationFrame(frame)
+  }
+
+  function wake() {
+    if (!raf && states.some((state) => state.mode !== 'idle')) {
+      raf = requestAnimationFrame(frame)
+    }
+  }
+
+  function updateTargets() {
+    const now = performance.now()
+    for (const state of states) {
+      const rect = state.el.getBoundingClientRect()
+      const baseLeft = rect.left - state.x
+      const baseTop = rect.top - state.y
+      const baseRight = baseLeft + rect.width
+      const baseBottom = baseTop + rect.height
+      const dx = pointerX - (baseLeft + rect.width / 2)
+      const dy = pointerY - (baseTop + rect.height / 2)
+      const nearestX = clamp(pointerX, baseLeft, baseRight)
+      const nearestY = clamp(pointerY, baseTop, baseBottom)
+      const distance = Math.hypot(pointerX - nearestX, pointerY - nearestY)
+
+      if (!enabled() || distance > state.radius) {
+        startReturn(state, now)
+        continue
+      }
+
+      const falloff = 1 - distance / state.radius
+      const pull = state.strength * (0.25 + 0.75 * falloff)
+      state.tx = dx * pull
+      state.ty = dy * pull
+
+      const offset = Math.hypot(state.tx, state.ty)
+      if (offset > maxOffset) {
+        state.tx = (state.tx / offset) * maxOffset
+        state.ty = (state.ty / offset) * maxOffset
+      }
+      state.mode = 'follow'
+    }
+    wake()
+  }
+
+  function onMove(event) {
+    if (!enabled()) return
+    if (event.pointerType && event.pointerType !== 'mouse') return
+    pointerX = event.clientX
+    pointerY = event.clientY
+    updateTargets()
+  }
+
+  function onLeave() {
+    const time = performance.now()
+    for (const state of states) startReturn(state, time)
+    wake()
+  }
+
+  function onModeChange() {
+    if (!enabled()) onLeave()
+  }
+
+  function destroy() {
+    controller.abort()
+    if (raf) cancelAnimationFrame(raf)
+    raf = 0
+    reduce.removeEventListener('change', onModeChange)
+    fine.removeEventListener('change', onModeChange)
+    window.removeEventListener('pagehide', destroy)
+  }
+
+  document.addEventListener('pointerout', (event) => {
+    if (!event.relatedTarget) onLeave()
+  }, { signal })
+  window.addEventListener('pointermove', onMove, { signal })
+  window.addEventListener('pointercancel', onLeave, { signal })
+  window.addEventListener('scroll', onLeave, { passive: true, signal })
+  window.addEventListener('blur', onLeave, { signal })
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) onLeave()
+  }, { signal })
+  reduce.addEventListener('change', onModeChange)
+  fine.addEventListener('change', onModeChange)
+  window.addEventListener('pagehide', destroy)
+})()
+</script>
+</body>
+</html>

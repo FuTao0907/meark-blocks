@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>标签输入 · demo</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: #141a2e;
+    --line: #22304d;
+    --text: #e6ebf5;
+    --muted: #8d9ab5;
+    --accent: #5eead4;
+    --field: #0f1528;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 48px 20px;
+    background: radial-gradient(900px 520px at 50% -10%, #18223c 0%, var(--bg) 62%);
+    color: var(--text);
+    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .panel {
+    width: 100%;
+    max-width: 660px;
+    padding: 26px 26px 20px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--card);
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.38);
+  }
+  .panel__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .eyebrow {
+    margin: 0 0 8px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 { margin: 0 0 6px; font-size: 21px; font-weight: 600; letter-spacing: 0.01em; }
+  .sub {
+    margin: 0;
+    max-width: 44ch;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--muted);
+  }
+  .count {
+    flex: none;
+    padding: 5px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    transition: color 180ms ease, border-color 180ms ease;
+  }
+  .count.is-full { color: var(--accent); border-color: rgba(94, 234, 212, 0.45); }
+
+  .field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-height: 56px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--field);
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+  }
+  .field:focus-within {
+    border-color: rgba(94, 234, 212, 0.55);
+    box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.12);
+  }
+  .field.is-warn {
+    border-color: rgba(248, 113, 113, 0.65);
+    box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.12);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    max-width: 100%;
+    padding: 4px 4px 4px 10px;
+    border: 1px solid rgba(94, 234, 212, 0.28);
+    border-radius: 8px;
+    background: rgba(94, 234, 212, 0.09);
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #d7fff7;
+  }
+  .chip__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip__remove {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 160ms ease, color 160ms ease;
+  }
+  .chip__remove:hover { background: rgba(94, 234, 212, 0.16); color: var(--text); }
+  .chip__remove:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    background: rgba(94, 234, 212, 0.18);
+  }
+
+  .input {
+    flex: 1 1 140px;
+    min-width: 140px;
+    padding: 6px 2px;
+    border: 0;
+    background: transparent;
+    outline: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 13.5px;
+  }
+  .input::placeholder { color: #63708c; }
+
+  .hint {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin: 11px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  .hint li { display: inline-flex; align-items: center; gap: 5px; }
+  kbd {
+    display: inline-block;
+    min-width: 18px;
+    padding: 1px 5px;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    background: #1a2238;
+    color: #c3cee3;
+    font-family: inherit;
+    font-size: 10.5px;
+    text-align: center;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(34, 48, 77, 0.7);
+  }
+  .row__label { font-size: 11.5px; color: var(--muted); }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 auto; }
+  .preset {
+    padding: 5px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    color: #b9c5dc;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+  }
+  .preset:hover { border-color: #33456b; background: rgba(34, 48, 77, 0.5); color: var(--text); }
+  .preset.is-on {
+    border-color: rgba(94, 234, 212, 0.5);
+    background: rgba(94, 234, 212, 0.1);
+    color: var(--accent);
+  }
+  .preset.is-on::before { content: "✓"; margin-right: 5px; font-size: 10px; }
+  .preset:focus-visible, .clear:focus-visible {
+    outline: 2px solid rgba(94, 234, 212, 0.75);
+    outline-offset: 2px;
+  }
+
+  .clear {
+    margin-left: auto;
+    padding: 5px 4px;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 12px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(141, 154, 181, 0.4);
+    cursor: pointer;
+  }
+  .clear:hover { color: var(--text); }
+  .clear:disabled { opacity: 0.35; cursor: default; text-decoration: none; }
+
+  .status {
+    min-height: 18px;
+    margin: 14px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+    transition: color 160ms ease;
+  }
+  .status.is-ok { color: var(--accent); }
+  .status.is-warn { color: #fca5a5; }
+
+  .panel__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(34, 48, 77, 0.7);
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  .panel__foot b { color: var(--text); font-weight: 600; }
+
+  @media (max-width: 560px) {
+    body { padding: 28px 14px; }
+    .panel { padding: 20px 18px 16px; border-radius: 16px; }
+    .panel__head { flex-direction: column; gap: 10px; }
+    .hint { gap: 6px 12px; }
+    .panel__foot { align-items: flex-start; flex-direction: column; gap: 6px; }
+  }
+
+  @media (max-height: 620px) {
+    body { padding: 20px 16px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .field, .count, .chip__remove, .preset, .clear, .status { transition: none; }
+    .field.is-warn { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+  <main class="panel" aria-labelledby="title">
+    <header class="panel__head">
+      <div>
+        <p class="eyebrow">组件 · 表单</p>
+        <h1 id="title">标签输入</h1>
+        <p class="sub">输入内容后按 Enter 生成标签，最多 8 个；点击 × 或聚焦后按 Delete 可移除。</p>
+      </div>
+      <span class="count" id="count" aria-hidden="true">0 / 8</span>
+    </header>
+
+    <div class="field" id="field">
+      <input
+        class="input"
+        id="input"
+        type="text"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="输入标签，按 Enter 添加"
+        aria-label="添加标签"
+        aria-describedby="hint"
+      />
+    </div>
+
+    <ul class="hint" id="hint">
+      <li><kbd>Enter</kbd> 添加</li>
+      <li><kbd>←</kbd><kbd>→</kbd> 切换标签</li>
+      <li><kbd>Backspace</kbd> 删除最后一个</li>
+      <li>输入法组字中按 Enter 不会误提交</li>
+    </ul>
+
+    <div class="row">
+      <span class="row__label" id="presetLabel">推荐</span>
+      <div class="presets" id="presets" role="group" aria-labelledby="presetLabel">
+        <button type="button" class="preset" data-tag="前端">前端</button>
+        <button type="button" class="preset" data-tag="动效">动效</button>
+        <button type="button" class="preset" data-tag="设计系统">设计系统</button>
+        <button type="button" class="preset" data-tag="可访问性">可访问性</button>
+        <button type="button" class="preset" data-tag="数据可视化">数据可视化</button>
+        <button type="button" class="preset" data-tag="零依赖">零依赖</button>
+      </div>
+      <button type="button" class="clear" id="clear">清空</button>
+    </div>
+
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+
+    <footer class="panel__foot">
+      <span>已选 <b id="summary">0</b> 个标签</span>
+      <span>maxTags 8 · separator Enter</span>
+    </footer>
+  </main>
+
+<script>
+(() => {
+  const MAX_TAGS = 8
+  const MAX_LENGTH = 12
+  const SEPARATOR = 'Enter'
+
+  const field = document.getElementById('field')
+  const input = document.getElementById('input')
+  const countEl = document.getElementById('count')
+  const statusEl = document.getElementById('status')
+  const summaryEl = document.getElementById('summary')
+  const presetsEl = document.getElementById('presets')
+  const clearBtn = document.getElementById('clear')
+  const panel = document.querySelector('.panel')
+
+  let tags = ['前端', '动效']
+  let statusTimer = 0
+  let warnTimer = 0
+  let composing = false
+  let announceFlip = false
+
+  const normalize = (value) => value.replace(/\s+/g, ' ').trim()
+  const keyOf = (value) => normalize(value).toLocaleLowerCase()
+
+  function announce(message, kind) {
+    window.clearTimeout(statusTimer)
+    statusEl.textContent = message + (announceFlip ? '\u200B' : '')
+    announceFlip = !announceFlip
+    statusEl.className = 'status' + (kind ? ' is-' + kind : '')
+    if (kind !== 'warn') {
+      statusTimer = window.setTimeout(() => {
+        statusEl.textContent = ''
+        statusEl.className = 'status'
+      }, 2800)
+    }
+  }
+
+  function warnFull() {
+    announce('已达上限 ' + MAX_TAGS + ' 个标签，先移除再添加', 'warn')
+    field.classList.add('is-warn')
+    window.clearTimeout(warnTimer)
+    warnTimer = window.setTimeout(() => field.classList.remove('is-warn'), 1600)
+  }
+
+  function paint() {
+    field.querySelectorAll('.chip').forEach((el) => el.remove())
+
+    tags.forEach((tag, index) => {
+      const chip = document.createElement('span')
+      chip.className = 'chip'
+
+      const text = document.createElement('span')
+      text.className = 'chip__text'
+      text.textContent = tag
+
+      const remove = document.createElement('button')
+      remove.type = 'button'
+      remove.className = 'chip__remove'
+      remove.dataset.index = String(index)
+      remove.setAttribute('aria-label', '移除标签 ' + tag)
+      remove.textContent = '\u00D7'
+
+      chip.append(text, remove)
+      input.before(chip)
+    })
+
+    countEl.textContent = tags.length + ' / ' + MAX_TAGS
+    countEl.classList.toggle('is-full', tags.length >= MAX_TAGS)
+    summaryEl.textContent = String(tags.length)
+    clearBtn.disabled = tags.length === 0
+    input.placeholder = tags.length >= MAX_TAGS
+      ? '已达上限 ' + MAX_TAGS + ' 个，先移除再添加'
+      : '输入标签，按 Enter 添加'
+
+    presetsEl.querySelectorAll('.preset').forEach((btn) => {
+      const on = tags.some((tag) => keyOf(tag) === keyOf(btn.dataset.tag))
+      btn.classList.toggle('is-on', on)
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false')
+    })
+  }
+
+  function addTag(raw, options) {
+    const opts = options || {}
+    let value = normalize(raw)
+    if (!value) return false
+
+    let clipped = false
+    if (value.length > MAX_LENGTH) {
+      value = value.slice(0, MAX_LENGTH)
+      clipped = true
+    }
+    if (tags.some((tag) => keyOf(tag) === keyOf(value))) {
+      if (!opts.silent) announce('「' + value + '」已在标签列表中', 'warn')
+      return false
+    }
+    if (tags.length >= MAX_TAGS) {
+      if (!opts.silent) warnFull()
+      return false
+    }
+
+    tags.push(value)
+    paint()
+    field.classList.remove('is-warn')
+    window.clearTimeout(warnTimer)
+    if (!opts.silent) {
+      announce(clipped ? '已截断为「' + value + '」并添加' : '已添加「' + value + '」', 'ok')
+    }
+    return true
+  }
+
+  function removeTag(index, focusMode) {
+    if (index < 0 || index >= tags.length) return
+    const tag = tags.splice(index, 1)[0]
+    paint()
+    announce('已移除「' + tag + '」', 'ok')
+
+    if (focusMode === 'input') {
+      input.focus()
+    } else if (focusMode === 'next') {
+      const buttons = Array.from(field.querySelectorAll('.chip__remove'))
+      const next = buttons[index] || buttons[index - 1]
+      if (next) next.focus()
+      else input.focus()
+    }
+  }
+
+  function submitInput() {
+    const raw = input.value
+    if (!normalize(raw)) return
+    addTag(raw)
+    input.value = ''
+  }
+
+  field.addEventListener('click', (event) => {
+    const button = event.target.closest('.chip__remove')
+    if (!button) return
+    removeTag(Number(button.dataset.index), 'input')
+  })
+
+  field.addEventListener('keydown', (event) => {
+    const button = event.target.closest('.chip__remove')
+    if (!button) return
+    const buttons = Array.from(field.querySelectorAll('.chip__remove'))
+    const index = buttons.indexOf(button)
+
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      event.preventDefault()
+      const next = buttons[index + 1]
+      if (next) next.focus()
+      else input.focus()
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      const prev = buttons[index - 1]
+      if (prev) prev.focus()
+    } else if (event.key === 'Backspace' || event.key === 'Delete') {
+      event.preventDefault()
+      removeTag(index, 'next')
+    }
+  })
+
+  input.addEventListener('keydown', (event) => {
+    if (composing || event.isComposing || event.keyCode === 229) return
+
+    if (event.key === SEPARATOR) {
+      event.preventDefault()
+      submitInput()
+      return
+    }
+    if (event.key === 'Backspace' && input.value === '') {
+      if (!tags.length) return
+      event.preventDefault()
+      removeTag(tags.length - 1, 'input')
+      return
+    }
+    if (event.key === 'ArrowLeft' && input.value === '' && tags.length) {
+      event.preventDefault()
+      const buttons = field.querySelectorAll('.chip__remove')
+      const last = buttons[buttons.length - 1]
+      if (last) last.focus()
+    }
+  })
+
+  input.addEventListener('compositionstart', () => { composing = true })
+  input.addEventListener('compositionend', () => { composing = false })
+
+  input.addEventListener('paste', (event) => {
+    const data = event.clipboardData || window.clipboardData
+    if (!data) return
+    const text = data.getData('text')
+    if (!/[,;，；\n\r\t]/.test(text)) return
+
+    event.preventDefault()
+    const parts = text.split(/[,;，；\n\r\t]+/)
+    let added = 0
+    let skipped = 0
+
+    parts.forEach((part) => {
+      if (!normalize(part)) return
+      if (addTag(part, { silent: true })) added += 1
+      else skipped += 1
+    })
+
+    input.value = ''
+    if (added) {
+      announce('已添加 ' + added + ' 个标签' + (skipped ? '，' + skipped + ' 个未添加' : ''), 'ok')
+    } else if (skipped) {
+      announce('没有可添加的标签：可能重复或已达上限', 'warn')
+    }
+  })
+
+  presetsEl.addEventListener('click', (event) => {
+    const button = event.target.closest('.preset')
+    if (!button) return
+    const tag = button.dataset.tag
+    const index = tags.findIndex((item) => keyOf(item) === keyOf(tag))
+    if (index >= 0) removeTag(index, 'none')
+    else addTag(tag)
+  })
+
+  clearBtn.addEventListener('click', () => {
+    if (!tags.length) return
+    tags = []
+    paint()
+    announce('已清空全部标签', 'ok')
+    input.focus()
+  })
+
+  const cleanup = () => {
+    window.clearTimeout(statusTimer)
+    window.clearTimeout(warnTimer)
+    composing = false
+  }
+  window.addEventListener('pagehide', cleanup)
+  panel.addEventListener('click', (event) => {
+    if (event.target === field) input.focus()
+  })
+
+  paint()
+})()
+</script>
+</body>
+</html>

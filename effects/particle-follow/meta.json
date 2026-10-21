@@ -1,0 +1,20 @@
+{
+  "id": "particle-follow",
+  "name": "粒子跟随",
+  "aka": ["鼠标粒子轨迹", "光标拖尾", "particle trail", "粒子拖尾", "canvas 粒子跟随"],
+  "category": "canvas",
+  "subcategory": "pointer",
+  "scenes": ["landing", "portfolio", "marketing"],
+  "feel": ["tech", "playful", "bold"],
+  "params": [
+    { "key": "count", "label": "粒子池容量", "default": 60, "type": "number" },
+    { "key": "size", "label": "粒子半径", "default": 3, "type": "number", "unit": "px" },
+    { "key": "life", "label": "生命周期", "default": 900, "type": "number", "unit": "ms" },
+    { "key": "color", "label": "主色", "default": "94, 234, 212", "type": "string" }
+  ],
+  "a11y": "prefers-reduced-motion 下不生成粒子，仅保留静态背景",
+  "notFor": ["性能敏感的低端设备", "需要精确点击的区域", "表单密集页面"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

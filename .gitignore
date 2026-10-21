@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.npm-cache/
+shots/
+
+# 构建产物（由 npm run catalog 生成）
+public/catalog.json
+public/effects/
+
+# 编辑器
+.vscode/
+.idea/
+*.local
+Thumbs.db

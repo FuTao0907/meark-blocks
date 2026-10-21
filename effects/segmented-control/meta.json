@@ -1,0 +1,19 @@
+{
+  "id": "segmented-control",
+  "name": "分段控件",
+  "aka": ["分段选择器", "分段切换", "segmented control", "滑块切换", "标签切换"],
+  "category": "component",
+  "subcategory": "form",
+  "scenes": ["dashboard", "landing"],
+  "feel": ["minimal", "premium"],
+  "params": [
+    { "key": "duration", "label": "指示块滑动时长", "default": 220, "type": "number", "unit": "ms" },
+    { "key": "height", "label": "控件高度", "default": 36, "type": "number", "unit": "px" },
+    { "key": "gap", "label": "分段间距", "default": 4, "type": "number", "unit": "px" }
+  ],
+  "a11y": "prefers-reduced-motion 下指示块直接跳到目标位置，无滑动与淡入",
+  "notFor": ["选项超过 6 个的筛选", "需要同时多选的场景", "各选项文案长度差异极大的分类"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

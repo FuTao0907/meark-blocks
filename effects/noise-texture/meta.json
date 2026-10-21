@@ -1,0 +1,20 @@
+{
+  "id": "noise-texture",
+  "name": "噪点纹理",
+  "aka": ["胶片颗粒", "颗粒噪点", "film grain", "noise overlay", "磨砂噪点"],
+  "category": "visual",
+  "subcategory": "texture",
+  "scenes": ["portfolio", "marketing"],
+  "feel": ["retro", "premium"],
+  "params": [
+    { "key": "density", "label": "颗粒密度", "default": 0.35, "type": "number" },
+    { "key": "opacity", "label": "纹理不透明度", "default": 0.06, "type": "number" },
+    { "key": "size", "label": "颗粒尺寸", "default": 1, "type": "number", "unit": "px" },
+    { "key": "tint", "label": "颗粒颜色", "default": "255, 255, 255", "type": "string" }
+  ],
+  "a11y": "prefers-reduced-motion 下颗粒静止，只绘制一帧，不闪烁",
+  "notFor": ["小字号正文区域", "纯白背景的商务文档", "需要精确取色的设计稿预览"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

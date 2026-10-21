@@ -1,0 +1,19 @@
+{
+  "id": "scroll-parallax",
+  "name": "滚动视差",
+  "aka": ["分层滚动", "背景视差", "景深滚动", "parallax scroll", "图层视差"],
+  "category": "animation",
+  "subcategory": "scroll",
+  "scenes": ["landing", "portfolio"],
+  "feel": ["tech", "premium"],
+  "params": [
+    { "key": "speed", "label": "视差速率", "default": 0.3, "type": "number" },
+    { "key": "maxOffset", "label": "单层最大位移", "default": 120, "type": "number", "unit": "px" },
+    { "key": "smoothing", "label": "插值系数", "default": 0.14, "type": "number" }
+  ],
+  "a11y": "prefers-reduced-motion 下所有层保持静止，不绑定滚动计算，正文不做视差",
+  "notFor": ["文字密集的长文页", "移动端性能敏感页面", "需要精确对齐的图表"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

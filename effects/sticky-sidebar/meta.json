@@ -1,0 +1,18 @@
+{
+  "id": "sticky-sidebar",
+  "name": "粘性侧栏",
+  "aka": ["吸顶侧栏", "粘性目录", "sticky sidebar", "滚动固定侧边栏"],
+  "category": "layout",
+  "subcategory": "scroll",
+  "scenes": ["dashboard", "portfolio"],
+  "feel": ["minimal"],
+  "params": [
+    { "key": "offset", "label": "吸顶距顶部距离", "default": 24, "type": "number", "unit": "px" },
+    { "key": "breakpoint", "label": "取消吸顶的窗口宽度阈值", "default": 960, "type": "number", "unit": "px" }
+  ],
+  "a11y": "prefers-reduced-motion 下目录点击为瞬时跳转，高亮无过渡；当前章节同时用加粗与竖条标记，不只靠颜色",
+  "notFor": ["内容很短、没有可滚动距离的落地页", "以移动端单手操作为主的页面", "需要同时吸顶两条以上侧栏的布局"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

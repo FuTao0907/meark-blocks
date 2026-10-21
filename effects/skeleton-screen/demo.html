@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>骨架屏 · demo</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: #141a2e;
+    --line: #22304d;
+    --text: #e6ebf5;
+    --muted: #8d9ab5;
+    --accent: #5eead4;
+    --skel: #1d2740;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 44px 20px 72px;
+    background: radial-gradient(900px 520px at 50% -8%, #1a2440 0%, var(--bg) 62%);
+    color: var(--text);
+    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { width: min(880px, 100%); margin: 0 auto; }
+  .intro h1 { margin: 0 0 8px; font-size: 24px; letter-spacing: .4px; }
+  .intro p { margin: 0 0 24px; max-width: 640px; color: var(--muted); font-size: 13px; line-height: 1.75; }
+
+  .panel {
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(20, 26, 46, .55);
+  }
+  @media (min-width: 760px) { .panel { padding: 22px; } }
+
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
+  .state { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #4b5a7c;
+    transition: background 160ms ease, box-shadow 160ms ease;
+  }
+  .dot.is-live { background: var(--accent); box-shadow: 0 0 0 4px rgba(94, 234, 212, .12); }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+  .field { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+  select {
+    padding: 7px 9px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: #0f1526;
+    color: var(--text);
+    font: inherit;
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .check { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+  input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+
+  .btn {
+    padding: 8px 15px;
+    border: 1px solid #2b3a60;
+    border-radius: 9px;
+    background: #1a2440;
+    color: var(--text);
+    font: inherit;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: background 160ms ease, border-color 160ms ease;
+  }
+  .btn:hover { background: #1f2b4a; border-color: #3d5280; }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn:disabled { opacity: .55; cursor: default; }
+  .btn--primary { border-color: transparent; background: var(--accent); color: #06231f; font-weight: 600; }
+  .btn--primary:hover { background: #7ff0dc; border-color: transparent; }
+
+  .stage {
+    margin-top: 16px;
+    padding: 18px;
+    border: 1px dashed #2a3a5e;
+    border-radius: 14px;
+    background: rgba(11, 16, 32, .5);
+  }
+  .card {
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--card);
+    transition: opacity 130ms ease;
+  }
+  .card.is-fading { opacity: .35; }
+  .card.is-loading .real { display: none; }
+  .card:not(.is-loading) .skel { display: none; }
+
+  .card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 48px;
+    margin-bottom: 12px;
+  }
+  .head__title {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0;
+    min-height: 48px;
+  }
+  .head__title h2 { margin: 0; font-size: 17px; line-height: 24px; letter-spacing: .2px; }
+  .sub { margin: 0; font-size: 11.5px; line-height: 15px; color: var(--muted); }
+  .head__side { display: flex; flex: 0 0 auto; align-items: center; min-height: 48px; }
+  .badge {
+    padding: 5px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .skel { position: relative; display: block; overflow: hidden; border-radius: 6px; background: var(--skel); }
+  .skel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-110%);
+    background: linear-gradient(90deg, transparent 0%, rgba(94, 234, 212, .14) 50%, transparent 100%);
+  }
+  .card.shimmer-on .skel::after { animation: sweep 1400ms ease-in-out infinite; }
+  @keyframes sweep {
+    from { transform: translateX(-110%); }
+    to { transform: translateX(110%); }
+  }
+  .skel-title { width: 128px; height: 16px; }
+  .skel-sub { width: 176px; height: 10px; }
+  .skel-pill { width: 92px; height: 22px; border-radius: 999px; }
+
+  .rows { display: flex; flex-direction: column; }
+  .row { display: flex; align-items: center; gap: 12px; min-height: 58px; border-top: 1px solid #1c2742; }
+  .row:first-child { border-top: 0; }
+  .avatar { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 10px; }
+  .avatar.real {
+    display: grid;
+    place-items: center;
+    background: rgba(94, 234, 212, .12);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .meta { display: flex; flex: 1 1 auto; flex-direction: column; gap: 5px; min-width: 0; }
+  .bar { height: 11px; }
+  .bar--name { width: 58%; max-width: 220px; }
+  .bar--meta { width: 38%; max-width: 160px; height: 9px; }
+  .value { display: flex; flex: 0 0 auto; align-items: center; justify-content: flex-end; min-width: 58px; }
+  .bar--value { width: 48px; height: 12px; margin-left: auto; }
+  .row__name { font-size: 13px; font-weight: 600; line-height: 18px; }
+  .row__meta { font-size: 11.5px; line-height: 15px; color: var(--muted); }
+  .row__value { font-size: 13px; font-weight: 600; line-height: 18px; font-variant-numeric: tabular-nums; }
+
+  .note { margin: 14px 4px 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (max-width: 560px) {
+    body { padding: 28px 14px 56px; }
+    .stage { padding: 12px; }
+    .card { padding: 16px; }
+    .skel-sub { width: 140px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { transition: none; }
+    .card.shimmer-on .skel::after { animation: none; opacity: 0; }
+    .dot, .btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <main class="page">
+    <header class="intro">
+      <h1>骨架屏</h1>
+      <p>内容返回前用与最终布局同构的占位块占住空间。切换「加载中 / 加载完成」，观察卡片高度、占位行数与微光扫过的变化。</p>
+    </header>
+
+    <section class="panel">
+      <div class="toolbar">
+        <span class="state">
+          <span class="dot is-live" id="stateDot" aria-hidden="true"></span>
+          <span id="stateText">加载中 · 4 行占位</span>
+        </span>
+        <div class="controls">
+          <label class="field">占位行数
+            <select id="rowsSelect">
+              <option value="2">2 行</option>
+              <option value="4" selected>4 行</option>
+              <option value="6">6 行</option>
+            </select>
+          </label>
+          <label class="check">
+            <input type="checkbox" id="shimmerToggle" checked />
+            微光扫过
+          </label>
+          <button class="btn btn--primary" id="toggleBtn" type="button">完成加载</button>
+        </div>
+      </div>
+
+      <div class="stage">
+        <article class="card is-loading shimmer-on" id="card" aria-busy="true">
+          <div class="card__head">
+            <div class="head__title">
+              <span class="skel skel-title" aria-hidden="true"></span>
+              <span class="skel skel-sub" aria-hidden="true"></span>
+              <h2 class="real">构建概览</h2>
+              <p class="sub real">最近 7 天 · 全部工作区</p>
+            </div>
+            <div class="head__side">
+              <span class="skel skel-pill" aria-hidden="true"></span>
+              <span class="badge real">更新于 12:40</span>
+            </div>
+          </div>
+          <div class="rows" id="rows" role="list" aria-label="构建指标列表"></div>
+        </article>
+      </div>
+
+      <p class="note">切换只替换内容，不改变卡片高度；行数改变会同步调整占位与真实内容。开启系统「减弱动态效果」后，微光与淡入淡出会停止。</p>
+      <p class="sr-only" role="status" id="live">正在加载 4 行内容</p>
+    </section>
+  </main>
+
+<script>
+(() => {
+  const reduceQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+  const card = document.getElementById('card')
+  const rowsEl = document.getElementById('rows')
+  const rowsSelect = document.getElementById('rowsSelect')
+  const shimmerToggle = document.getElementById('shimmerToggle')
+  const toggleBtn = document.getElementById('toggleBtn')
+  const stateText = document.getElementById('stateText')
+  const stateDot = document.getElementById('stateDot')
+  const live = document.getElementById('live')
+
+  const items = [
+    { mark: '构', name: '构建任务', meta: '今天 09:12 · main 分支', value: '1,284' },
+    { mark: '预', name: '预览访问', meta: '今天 08:40 · preview-42', value: '356' },
+    { mark: '警', name: '错误告警', meta: '昨天 22:05 · api-worker', value: '3' },
+    { mark: '耗', name: '平均构建耗时', meta: '近 7 天 · 全部流水线', value: '48.2s' },
+    { mark: '队', name: '活跃成员', meta: '最近 24 小时', value: '9' },
+    { mark: '存', name: '缓存命中率', meta: '近 7 天 · 边缘节点', value: '86%' }
+  ]
+
+  let loading = true
+  let swapTimer = 0
+
+  const rowHtml = (item) => `
+    <div class="row" role="listitem">
+      <span class="avatar skel" aria-hidden="true"></span>
+      <span class="avatar real" aria-hidden="true">${item.mark}</span>
+      <div class="meta">
+        <span class="skel bar bar--name" aria-hidden="true"></span>
+        <span class="skel bar bar--meta" aria-hidden="true"></span>
+        <span class="real row__name">${item.name}</span>
+        <span class="real row__meta">${item.meta}</span>
+      </div>
+      <div class="value">
+        <span class="skel bar bar--value" aria-hidden="true"></span>
+        <span class="real row__value">${item.value}</span>
+      </div>
+    </div>`
+
+  function renderRows() {
+    const count = Number(rowsSelect.value)
+    rowsEl.innerHTML = items.slice(0, count).map(rowHtml).join('')
+    if (loading) {
+      stateText.textContent = '加载中 · ' + count + ' 行占位'
+      live.textContent = '正在加载 ' + count + ' 行内容'
+    }
+  }
+
+  function applyState(next) {
+    loading = next
+    card.classList.toggle('is-loading', loading)
+    card.setAttribute('aria-busy', String(loading))
+    toggleBtn.textContent = loading ? '完成加载' : '重新加载'
+    stateDot.classList.toggle('is-live', loading)
+    stateText.textContent = loading
+      ? '加载中 · ' + rowsSelect.value + ' 行占位'
+      : '加载完成 · 真实内容'
+    live.textContent = loading
+      ? '正在加载 ' + rowsSelect.value + ' 行内容'
+      : '加载完成'
+  }
+
+  function switchState(next) {
+    if (loading === next) return
+    window.clearTimeout(swapTimer)
+    if (reduceQuery.matches) {
+      applyState(next)
+      return
+    }
+    toggleBtn.disabled = true
+    card.classList.add('is-fading')
+    swapTimer = window.setTimeout(() => {
+      applyState(next)
+      card.classList.remove('is-fading')
+      toggleBtn.disabled = false
+    }, 130)
+  }
+
+  function onToggle() {
+    switchState(!loading)
+  }
+
+  function onRowsChange() {
+    renderRows()
+  }
+
+  function onShimmerChange() {
+    card.classList.toggle('shimmer-on', shimmerToggle.checked)
+  }
+
+  function teardown() {
+    window.clearTimeout(swapTimer)
+    toggleBtn.removeEventListener('click', onToggle)
+    rowsSelect.removeEventListener('change', onRowsChange)
+    shimmerToggle.removeEventListener('change', onShimmerChange)
+  }
+
+  toggleBtn.addEventListener('click', onToggle)
+  rowsSelect.addEventListener('change', onRowsChange)
+  shimmerToggle.addEventListener('change', onShimmerChange)
+  window.addEventListener('pagehide', teardown, { once: true })
+
+  card.classList.toggle('shimmer-on', shimmerToggle.checked)
+  renderRows()
+  applyState(true)
+})()
+</script>
+</body>
+</html>

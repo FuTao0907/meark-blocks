@@ -1,0 +1,19 @@
+{
+  "id": "gradient-flow",
+  "name": "渐变流动背景",
+  "aka": ["流动渐变", "渐变位移背景", "氛围光晕", "gradient flow", "mesh background"],
+  "category": "animation",
+  "subcategory": "ambient",
+  "scenes": ["landing", "marketing"],
+  "feel": ["tech", "bold"],
+  "params": [
+    { "key": "speed", "label": "循环时长", "default": 12, "type": "number", "unit": "s" },
+    { "key": "angle", "label": "主渐变方向", "default": 135, "type": "number", "unit": "deg" },
+    { "key": "intensity", "label": "光晕强度", "default": 0.55, "type": "number" }
+  ],
+  "a11y": "prefers-reduced-motion 下动画全部停止，保留一帧静态渐变",
+  "notFor": ["正文密度极高的文档页", "需要严格色彩校准的场景", "低端机滚动的长列表页"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

@@ -1,0 +1,19 @@
+{
+  "id": "hover-spotlight",
+  "name": "光斑跟随卡片",
+  "aka": ["鼠标跟随光晕", "聚光灯卡片", "spotlight card", "跟随高亮", "卡片发光"],
+  "category": "interaction",
+  "subcategory": "hover",
+  "scenes": ["landing", "pricing", "portfolio"],
+  "feel": ["tech", "premium", "subtle"],
+  "params": [
+    { "key": "glowSize", "label": "光斑直径", "default": 320, "type": "number", "unit": "px" },
+    { "key": "glowOpacity", "label": "光斑最大透明度", "default": 0.15, "type": "number" },
+    { "key": "fadeMs", "label": "淡出时长", "default": 200, "type": "number", "unit": "ms" }
+  ],
+  "a11y": "prefers-reduced-motion 下不跟随，改为整卡边框高亮",
+  "notFor": ["移动端无 hover", "文字密集的表格", "需要精确点击的表单"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

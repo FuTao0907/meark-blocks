@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Toast 队列 · demo</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: #141a2e;
+    --line: #22304d;
+    --text: #e6ebf5;
+    --muted: #8d9ab5;
+    --accent: #5eead4;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 44px 20px 96px;
+    background: radial-gradient(900px 520px at 50% -8%, #1a2440 0%, var(--bg) 62%);
+    color: var(--text);
+    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { width: min(900px, 100%); margin: 0 auto; }
+  .intro h1 { margin: 0 0 8px; font-size: 24px; letter-spacing: .4px; }
+  .intro p { margin: 0 0 24px; max-width: 660px; color: var(--muted); font-size: 13px; line-height: 1.75; }
+
+  .panel {
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(20, 26, 46, .55);
+  }
+  @media (min-width: 760px) { .panel { padding: 22px; } }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn {
+    padding: 8px 15px;
+    border: 1px solid #2b3a60;
+    border-radius: 9px;
+    background: #1a2440;
+    color: var(--text);
+    font: inherit;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: background 160ms ease, border-color 160ms ease;
+  }
+  .btn:hover { background: #1f2b4a; border-color: #3d5280; }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn--primary { border-color: transparent; background: var(--accent); color: #06231f; font-weight: 600; }
+  .btn--primary:hover { background: #7ff0dc; border-color: transparent; }
+  .btn--ghost { background: transparent; color: var(--muted); }
+  .btn--ghost:hover { color: var(--text); }
+
+  .metrics { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+  .metric {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #0f1526;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .metric b { color: var(--text); font-size: 15px; font-variant-numeric: tabular-nums; }
+  .metric b.warn { color: #fbbf24; }
+
+  .settings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 22px;
+    padding: 14px 0 16px;
+    border-top: 1px solid #1c2742;
+    border-bottom: 1px solid #1c2742;
+  }
+  .field { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+  select {
+    padding: 7px 9px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: #0f1526;
+    color: var(--text);
+    font: inherit;
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .check { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+  input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+
+  .stage {
+    margin-top: 16px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #0f1526;
+    overflow: hidden;
+  }
+  .stage__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #1c2742;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .stage__head strong { color: var(--text); font-weight: 600; }
+  .stage__dots { display: inline-flex; gap: 5px; }
+  .stage__dots i { width: 7px; height: 7px; border-radius: 50%; background: #2b3a60; }
+  .stage__dots i:first-child { background: #3d5280; }
+  .stage__list { list-style: none; margin: 0; padding: 2px 16px; }
+  .stage__list li {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #17203a;
+    font-size: 12.5px;
+  }
+  .stage__list li:last-child { border-bottom: 0; }
+  .stage__name { color: var(--text); }
+  .stage__time { color: var(--muted); font-size: 11.5px; }
+  .pill { padding: 3px 8px; border-radius: 999px; background: rgba(94, 234, 212, .12); color: var(--accent); font-size: 10.5px; }
+  .pill--warn { background: rgba(251, 191, 36, .12); color: #fbbf24; }
+  .stage__hint { margin: 0; padding: 8px 16px 14px; color: var(--muted); font-size: 11.5px; }
+
+  .note { margin: 14px 4px 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .toasts {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 30;
+    width: min(370px, calc(100vw - 32px));
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+  }
+  .toast {
+    --type: #5eead4;
+    --soft: rgba(94, 234, 212, .12);
+    position: relative;
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 34px 13px 13px;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--type);
+    border-radius: 12px;
+    background: rgba(20, 26, 46, .97);
+    box-shadow: 0 14px 34px rgba(3, 7, 18, .55);
+    overflow: hidden;
+    animation: toast-in 220ms cubic-bezier(.2, .8, .3, 1);
+  }
+  .toast--success { --type: #5eead4; --soft: rgba(94, 234, 212, .12); }
+  .toast--info { --type: #7dd3fc; --soft: rgba(125, 211, 252, .12); }
+  .toast--warn { --type: #fbbf24; --soft: rgba(251, 191, 36, .12); }
+  .toast.is-leaving {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateY(12px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .toast__icon {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    border-radius: 6px;
+    background: var(--soft);
+    color: var(--type);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .toast__body { flex: 1 1 auto; min-width: 0; }
+  .toast__title { margin: 0; color: var(--text); font-size: 13px; font-weight: 600; line-height: 1.45; }
+  .toast__count {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--soft);
+    color: var(--type);
+    font-size: 10.5px;
+    font-weight: 600;
+    vertical-align: 1px;
+  }
+  .toast__count[hidden] { display: none; }
+  .toast__desc { margin: 3px 0 0; color: var(--muted); font-size: 11.5px; line-height: 1.6; word-break: break-word; }
+  .toast__close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .toast__close:hover { background: #1d2740; color: var(--text); }
+  .toast__close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .toast__bar {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--type);
+    transform: scaleX(1);
+    transform-origin: left center;
+    opacity: .75;
+  }
+  .toast.is-paused .toast__bar { opacity: .3; }
+
+  @media (max-width: 560px) {
+    body { padding: 28px 14px 88px; }
+    .stage__list li { grid-template-columns: 1fr auto; }
+    .stage__time { display: none; }
+    .toasts { left: 12px; right: 12px; bottom: 12px; width: auto; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toast { animation: none; }
+    .toast.is-leaving { transition: none; }
+    .toast__bar { display: none; }
+    .btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <main class="page">
+    <header class="intro">
+      <h1>Toast 队列</h1>
+      <p>短时反馈不遮挡正文：同屏最多 3 条，其余排队，队列满后丢弃并计数。连续触发可对比排队、相同文案合并与自动消失。</p>
+    </header>
+
+    <section class="panel">
+      <div class="actions">
+        <button class="btn btn--primary" id="fireOne" type="button">触发一条通知</button>
+        <button class="btn" id="fireBurst" type="button">连续触发 12 条</button>
+        <button class="btn" id="fireSame" type="button">重复文案 ×5</button>
+        <button class="btn btn--ghost" id="clearAll" type="button">全部清除</button>
+      </div>
+
+      <div class="metrics" aria-label="队列统计">
+        <span class="metric">同屏 <b id="mVisible">0</b>/<b id="mVisibleMax">3</b></span>
+        <span class="metric">排队 <b id="mQueue">0</b>/<b id="mQueueMax">6</b></span>
+        <span class="metric">已丢弃 <b class="warn" id="mDropped">0</b></span>
+      </div>
+
+      <div class="settings">
+        <label class="field">停留时长
+          <select id="durationSel">
+            <option value="2000">2000 ms</option>
+            <option value="3200" selected>3200 ms</option>
+            <option value="5000">5000 ms</option>
+          </select>
+        </label>
+        <label class="field">同屏上限
+          <select id="visibleSel">
+            <option value="1">1 条</option>
+            <option value="2">2 条</option>
+            <option value="3" selected>3 条</option>
+            <option value="4">4 条</option>
+            <option value="5">5 条</option>
+          </select>
+        </label>
+        <label class="field">排队上限
+          <select id="queueSel">
+            <option value="0">0 条</option>
+            <option value="2">2 条</option>
+            <option value="4">4 条</option>
+            <option value="6" selected>6 条</option>
+            <option value="8">8 条</option>
+          </select>
+        </label>
+        <label class="check">
+          <input type="checkbox" id="mergeToggle" checked />
+          合并相同文案
+        </label>
+      </div>
+
+      <div class="stage" aria-hidden="true">
+        <div class="stage__head">
+          <span class="stage__dots"><i></i><i></i><i></i></span>
+          <span>工作台 · <strong>部署记录</strong></span>
+        </div>
+        <ul class="stage__list">
+          <li><span class="stage__name">api-worker</span><span class="stage__time">2 分钟前</span><span class="pill">成功</span></li>
+          <li><span class="stage__name">web-console</span><span class="stage__time">18 分钟前</span><span class="pill">成功</span></li>
+          <li><span class="stage__name">docs-site</span><span class="stage__time">1 小时前</span><span class="pill pill--warn">重试</span></li>
+          <li><span class="stage__name">design-tokens</span><span class="stage__time">3 小时前</span><span class="pill">成功</span></li>
+        </ul>
+        <p class="stage__hint">通知固定出现在右下角，不推动这块页面内容。</p>
+      </div>
+
+      <p class="note">悬停或聚焦一条通知会暂停它的倒计时，移出后从剩余时间继续；点击右上角 × 立即关闭。把排队上限调小或连点「连续触发 12 条」可以观察丢弃计数。</p>
+      <p class="sr-only" id="helper">通知容器会以礼貌模式播报新消息，不抢焦点。</p>
+    </section>
+  </main>
+
+  <div class="toasts" id="toasts" role="status" aria-live="polite" aria-atomic="false"></div>
+
+<script>
+(() => {
+  const reduceQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+  const toastsEl = document.getElementById('toasts')
+  const durationSel = document.getElementById('durationSel')
+  const visibleSel = document.getElementById('visibleSel')
+  const queueSel = document.getElementById('queueSel')
+  const mergeToggle = document.getElementById('mergeToggle')
+  const fireOneBtn = document.getElementById('fireOne')
+  const fireBurstBtn = document.getElementById('fireBurst')
+  const fireSameBtn = document.getElementById('fireSame')
+  const clearBtn = document.getElementById('clearAll')
+  const mVisible = document.getElementById('mVisible')
+  const mVisibleMax = document.getElementById('mVisibleMax')
+  const mQueue = document.getElementById('mQueue')
+  const mQueueMax = document.getElementById('mQueueMax')
+  const mDropped = document.getElementById('mDropped')
+
+  const templates = [
+    { type: 'success', title: '部署完成', desc: 'preview-42 已在 8 秒内发布' },
+    { type: 'info', title: '数据已同步', desc: '3 个仓库的构建记录已更新' },
+    { type: 'warn', title: '构建耗时偏高', desc: 'api-worker 最近一次耗时 96s' },
+    { type: 'success', title: '缓存已刷新', desc: '边缘节点命中率回到 86%' },
+    { type: 'info', title: '新成员加入', desc: '李沐 接受了工作区邀请' },
+    { type: 'info', title: '评论已回复', desc: '设计评审 #128 新增 1 条回复' }
+  ]
+
+  const state = { visible: [], queue: [], dropped: 0, nextId: 1 }
+  const exitTimers = new Set()
+  let rafId = 0
+  let lastFrame = 0
+  let templateCursor = 0
+
+  const readConfig = () => ({
+    duration: Number(durationSel.value),
+    maxVisible: Number(visibleSel.value),
+    maxQueue: Number(queueSel.value),
+    mergeSame: mergeToggle.checked
+  })
+
+  const iconFor = (type) => (type === 'success' ? '✓' : type === 'warn' ? '!' : 'i')
+
+  function renderMetrics() {
+    mVisible.textContent = String(state.visible.length)
+    mVisibleMax.textContent = visibleSel.value
+    mQueue.textContent = String(state.queue.length)
+    mQueueMax.textContent = queueSel.value
+    mDropped.textContent = String(state.dropped)
+  }
+
+  function buildToast(item) {
+    const el = document.createElement('div')
+    el.className = 'toast toast--' + item.type
+    el.innerHTML = `
+      <span class="toast__icon" aria-hidden="true">${iconFor(item.type)}</span>
+      <div class="toast__body">
+        <p class="toast__title">${item.title}<span class="toast__count"${item.count > 1 ? '' : ' hidden'}>×${item.count}</span></p>
+        <p class="toast__desc">${item.desc}</p>
+      </div>
+      <button class="toast__close" type="button" aria-label="关闭通知：${item.title}">×</button>
+      <span class="toast__bar" aria-hidden="true"></span>`
+    return el
+  }
+
+  function pauseToast(item) {
+    if (item.removed) return
+    item.paused = true
+    if (item.el) item.el.classList.add('is-paused')
+  }
+
+  function resumeToast(item) {
+    if (item.removed) return
+    item.paused = false
+    if (item.el) item.el.classList.remove('is-paused')
+  }
+
+  function showToast(item) {
+    const cfg = readConfig()
+    item.remaining = cfg.duration
+    item.total = cfg.duration
+    item.paused = false
+    item.removed = false
+    item.el = buildToast(item)
+    item.bar = item.el.querySelector('.toast__bar')
+    item.countEl = item.el.querySelector('.toast__count')
+    item.el.querySelector('.toast__close').addEventListener('click', () => dismiss(item))
+    item.el.addEventListener('mouseenter', () => pauseToast(item))
+    item.el.addEventListener('mouseleave', () => resumeToast(item))
+    item.el.addEventListener('focusin', () => pauseToast(item))
+    item.el.addEventListener('focusout', () => resumeToast(item))
+    toastsEl.append(item.el)
+    state.visible.push(item)
+    renderMetrics()
+    ensureLoop()
+  }
+
+  function dismiss(item) {
+    if (item.removed) return
+    item.removed = true
+    state.visible = state.visible.filter((t) => t !== item)
+    if (item.el) {
+      item.el.classList.add('is-leaving')
+      if (reduceQuery.matches) {
+        item.el.remove()
+      } else {
+        const timer = window.setTimeout(() => {
+          exitTimers.delete(timer)
+          if (item.el) item.el.remove()
+        }, 200)
+        exitTimers.add(timer)
+      }
+    }
+    renderMetrics()
+    promote()
+  }
+
+  function promote() {
+    const cfg = readConfig()
+    while (state.visible.length < cfg.maxVisible && state.queue.length > 0) {
+      showToast(state.queue.shift())
+    }
+    renderMetrics()
+  }
+
+  function enqueue(payload) {
+    const cfg = readConfig()
+
+    if (cfg.mergeSame) {
+      const existing = state.visible.concat(state.queue).find(
+        (t) => t.title === payload.title && t.desc === payload.desc
+      )
+      if (existing) {
+        existing.count += 1
+        existing.remaining = cfg.duration
+        existing.total = cfg.duration
+        existing.paused = false
+        if (existing.el) {
+          existing.el.classList.remove('is-paused')
+          existing.countEl.textContent = '×' + existing.count
+          existing.countEl.hidden = false
+        }
+        renderMetrics()
+        return
+      }
+    }
+
+    const item = {
+      id: state.nextId,
+      type: payload.type,
+      title: payload.title,
+      desc: payload.desc,
+      count: 1
+    }
+    state.nextId += 1
+
+    if (state.visible.length < cfg.maxVisible) {
+      showToast(item)
+    } else if (state.queue.length < cfg.maxQueue) {
+      state.queue.push(item)
+      renderMetrics()
+    } else {
+      state.dropped += 1
+      renderMetrics()
+    }
+  }
+
+  function tick(now) {
+    rafId = 0
+    if (!lastFrame) lastFrame = now
+    const delta = Math.min(now - lastFrame, 120)
+    lastFrame = now
+
+    for (const item of state.visible.slice()) {
+      if (item.removed || item.paused) continue
+      item.remaining -= delta
+      if (item.remaining <= 0) {
+        dismiss(item)
+        continue
+      }
+      if (item.bar) {
+        const ratio = Math.max(0, Math.min(1, item.remaining / item.total))
+        item.bar.style.transform = 'scaleX(' + ratio.toFixed(4) + ')'
+      }
+    }
+
+    if (state.visible.length > 0) rafId = requestAnimationFrame(tick)
+    else lastFrame = 0
+  }
+
+  function ensureLoop() {
+    if (rafId || state.visible.length === 0) return
+    lastFrame = 0
+    rafId = requestAnimationFrame(tick)
+  }
+
+  function fireOne() {
+    const template = templates[templateCursor % templates.length]
+    templateCursor += 1
+    enqueue(template)
+  }
+
+  function fireBurst() {
+    for (let i = 0; i < 12; i += 1) {
+      const template = templates[i % templates.length]
+      enqueue({
+        type: template.type,
+        title: template.title,
+        desc: template.desc + ' · 任务 #' + (i + 1)
+      })
+    }
+  }
+
+  function fireSame() {
+    const payload = { type: 'success', title: '构建完成', desc: 'api-worker 构建 #2077 已通过' }
+    for (let i = 0; i < 5; i += 1) enqueue(payload)
+  }
+
+  function clearAll() {
+    state.queue = []
+    state.visible.slice().forEach((item) => dismiss(item))
+    state.dropped = 0
+    renderMetrics()
+  }
+
+  function onLimitChange() {
+    const cfg = readConfig()
+    while (state.visible.length > cfg.maxVisible) {
+      dismiss(state.visible[state.visible.length - 1])
+    }
+    while (state.queue.length > cfg.maxQueue) {
+      state.queue.pop()
+      state.dropped += 1
+    }
+    promote()
+    renderMetrics()
+  }
+
+  function teardown() {
+    if (rafId) cancelAnimationFrame(rafId)
+    rafId = 0
+    exitTimers.forEach((timer) => window.clearTimeout(timer))
+    exitTimers.clear()
+    fireOneBtn.removeEventListener('click', fireOne)
+    fireBurstBtn.removeEventListener('click', fireBurst)
+    fireSameBtn.removeEventListener('click', fireSame)
+    clearBtn.removeEventListener('click', clearAll)
+    durationSel.removeEventListener('change', renderMetrics)
+    visibleSel.removeEventListener('change', onLimitChange)
+    queueSel.removeEventListener('change', onLimitChange)
+  }
+
+  fireOneBtn.addEventListener('click', fireOne)
+  fireBurstBtn.addEventListener('click', fireBurst)
+  fireSameBtn.addEventListener('click', fireSame)
+  clearBtn.addEventListener('click', clearAll)
+  durationSel.addEventListener('change', renderMetrics)
+  visibleSel.addEventListener('change', onLimitChange)
+  queueSel.addEventListener('change', onLimitChange)
+  window.addEventListener('pagehide', teardown, { once: true })
+
+  renderMetrics()
+  enqueue(templates[3])
+})()
+</script>
+</body>
+</html>

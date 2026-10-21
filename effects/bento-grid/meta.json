@@ -1,0 +1,19 @@
+{
+  "id": "bento-grid",
+  "name": "Bento 网格",
+  "aka": ["便当盒网格", "分块拼贴网格", "bento layout", "大小格网格"],
+  "category": "layout",
+  "subcategory": "grid",
+  "scenes": ["landing", "dashboard"],
+  "feel": ["premium", "bold"],
+  "params": [
+    { "key": "gap", "label": "格子间距", "default": 12, "type": "number", "unit": "px" },
+    { "key": "radius", "label": "格子圆角", "default": 16, "type": "number", "unit": "px" },
+    { "key": "morphMs", "label": "换位平移动画时长", "default": 320, "type": "number", "unit": "ms" }
+  ],
+  "a11y": "prefers-reduced-motion 下跳过换位补差，排布切换立即生效；切换按钮带 aria-pressed，主格用边框与强调标签区分而非只靠底色",
+  "notFor": ["需要逐行逐列比较的大表格", "以窄屏为主、跨度折叠后层次全丢的页面", "需要无限滚动的信息流"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

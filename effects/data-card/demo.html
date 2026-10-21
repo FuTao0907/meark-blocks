@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>数据卡片 · demo</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: #141a2e;
+    --line: #22304d;
+    --text: #e6ebf5;
+    --muted: #8d9ab5;
+    --accent: #5eead4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 48px 20px;
+    background: radial-gradient(900px 520px at 50% -10%, #18223c 0%, var(--bg) 62%);
+    color: var(--text);
+    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .stage { width: 100%; max-width: 720px; }
+  .eyebrow {
+    margin: 0 0 8px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 { margin: 0 0 6px; font-size: 22px; font-weight: 600; }
+  .sub { margin: 0 0 20px; max-width: 52ch; font-size: 13px; line-height: 1.65; color: var(--muted); }
+
+  .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+  .dcard {
+    position: relative;
+    padding: 20px 20px 15px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--card);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+    transition: border-color 200ms ease, box-shadow 200ms ease;
+  }
+  .dcard:hover, .dcard.is-reading {
+    border-color: rgba(94, 234, 212, 0.32);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+  }
+
+  .dcard__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .dcard__label { margin: 0 0 4px; font-size: 13.5px; color: #d5deee; }
+  .dcard__meta { margin: 0; font-size: 11px; color: var(--muted); }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex: none;
+    padding: 4px 9px;
+    border: 1px solid rgba(94, 234, 212, 0.25);
+    border-radius: 999px;
+    background: rgba(94, 234, 212, 0.09);
+    color: var(--accent);
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .badge--down {
+    border-color: rgba(248, 113, 113, 0.28);
+    background: rgba(248, 113, 113, 0.09);
+    color: #fca5a5;
+  }
+  .badge svg { display: block; }
+
+  .dcard__value {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin: 18px 0 2px;
+    line-height: 1;
+  }
+  .dcard__num {
+    font-size: 40px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .dcard__unit { font-size: 15px; color: var(--muted); }
+
+  .dcard__chart {
+    position: relative;
+    height: 96px;
+    margin-top: 10px;
+    border-radius: 8px;
+    cursor: crosshair;
+    touch-action: pan-y;
+  }
+  .dcard__chart:focus-visible {
+    outline: 2px solid rgba(94, 234, 212, 0.6);
+    outline-offset: 4px;
+  }
+  .spark { display: block; width: 100%; height: 96px; overflow: visible; }
+  .spark__line {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.9;
+  }
+  .spark__cross {
+    stroke: rgba(230, 235, 245, 0.28);
+    stroke-width: 1;
+    stroke-dasharray: 3 4;
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+  .spark__dot {
+    fill: var(--card);
+    stroke: var(--accent);
+    stroke-width: 2.5;
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+  .dcard__chart.is-active .spark__cross,
+  .dcard__chart.is-active .spark__dot { opacity: 1; }
+
+  .dcard__tip {
+    position: absolute;
+    z-index: 3;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 5px 9px;
+    border: 1px solid #2c3a5c;
+    border-radius: 8px;
+    background: #1b2540;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+    transition: opacity 120ms ease;
+  }
+  .dcard__tip.is-below { transform: translate(-50%, 0); }
+  .dcard__tip.is-on { opacity: 1; }
+  .dcard__tip span { color: var(--muted); }
+  .dcard__tip b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .dcard__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 11px;
+    border-top: 1px solid rgba(34, 48, 77, 0.65);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .dcard__keys { display: inline-flex; align-items: center; gap: 4px; }
+  kbd {
+    display: inline-block;
+    min-width: 16px;
+    padding: 1px 4px;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    background: #1a2238;
+    color: #c3cee3;
+    font-family: inherit;
+    font-size: 10px;
+    text-align: center;
+  }
+
+  .note { margin: 16px 0 0; font-size: 11.5px; color: var(--muted); }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 28px 14px; }
+    .cards { grid-template-columns: 1fr; }
+  }
+
+  @media (max-height: 620px) {
+    body { padding: 20px 16px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dcard, .spark__cross, .spark__dot, .dcard__tip { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <main class="stage">
+    <header>
+      <p class="eyebrow">组件 · 数据</p>
+      <h1>数据卡片</h1>
+      <p class="sub">把指针移到折线上，或按 Tab 聚焦趋势区后用 ← → 逐点读取数值；卡片尺寸不会变化。</p>
+    </header>
+
+    <div class="cards">
+      <article class="dcard" data-card="0">
+        <header class="dcard__head">
+          <div>
+            <p class="dcard__label">活跃用户占比</p>
+            <p class="dcard__meta">近 14 天 · 每日 09:00</p>
+          </div>
+          <span class="badge">
+            <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true"><path d="M6 2 10.5 8H1.5Z" fill="currentColor"/></svg>
+            <span>+4.2%</span>
+          </span>
+        </header>
+
+        <p class="dcard__value">
+          <span class="dcard__num">68.4</span><span class="dcard__unit">%</span>
+        </p>
+
+        <div class="dcard__chart" data-chart tabindex="0" role="group"
+          aria-label="活跃用户占比近 14 天趋势，使用左右方向键逐点查看">
+          <svg class="spark" data-svg viewBox="0 0 300 96" aria-hidden="true">
+            <defs>
+              <linearGradient id="area-a" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#5eead4" stop-opacity="0.28" />
+                <stop offset="1" stop-color="#5eead4" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <path class="spark__area" data-area fill="url(#area-a)" />
+            <path class="spark__line" data-line />
+            <line class="spark__cross" data-cross x1="0" y1="8" x2="0" y2="88" />
+            <circle class="spark__dot" data-dot cx="0" cy="0" r="4" />
+          </svg>
+          <div class="dcard__tip" data-tip aria-hidden="true">
+            <span data-tip-date></span><b data-tip-value></b>
+          </div>
+          <p class="sr-only" data-live aria-live="polite"></p>
+        </div>
+
+        <footer class="dcard__foot">
+          <span>较上周</span>
+          <span class="dcard__keys">悬停或 <kbd>←</kbd><kbd>→</kbd> 读点</span>
+        </footer>
+      </article>
+
+      <article class="dcard" data-card="1">
+        <header class="dcard__head">
+          <div>
+            <p class="dcard__label">跳出率</p>
+            <p class="dcard__meta">近 14 天 · 每日 09:00</p>
+          </div>
+          <span class="badge badge--down">
+            <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true"><path d="M6 10 1.5 4h9Z" fill="currentColor"/></svg>
+            <span>−2.1%</span>
+          </span>
+        </header>
+
+        <p class="dcard__value">
+          <span class="dcard__num">32.6</span><span class="dcard__unit">%</span>
+        </p>
+
+        <div class="dcard__chart" data-chart tabindex="0" role="group"
+          aria-label="跳出率近 14 天趋势，使用左右方向键逐点查看">
+          <svg class="spark" data-svg viewBox="0 0 300 96" aria-hidden="true">
+            <defs>
+              <linearGradient id="area-b" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#5eead4" stop-opacity="0.18" />
+                <stop offset="1" stop-color="#5eead4" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <path class="spark__area" data-area fill="url(#area-b)" />
+            <path class="spark__line" data-line />
+            <line class="spark__cross" data-cross x1="0" y1="8" x2="0" y2="88" />
+            <circle class="spark__dot" data-dot cx="0" cy="0" r="4" />
+          </svg>
+          <div class="dcard__tip" data-tip aria-hidden="true">
+            <span data-tip-date></span><b data-tip-value></b>
+          </div>
+          <p class="sr-only" data-live aria-live="polite"></p>
+        </div>
+
+        <footer class="dcard__foot">
+          <span>较上周</span>
+          <span class="dcard__keys">悬停或 <kbd>←</kbd><kbd>→</kbd> 读点</span>
+        </footer>
+      </article>
+    </div>
+
+    <p class="note">趋势线用内联 SVG 绘制；指针离开后参考线与读数浮层立即清除。</p>
+  </main>
+
+<script>
+(() => {
+  const HEIGHT = 96
+  const PAD_X = 3
+  const TOP = 12
+  const BOTTOM = 84
+  const DATES = [
+    '10-08', '10-09', '10-10', '10-11', '10-12', '10-13', '10-14',
+    '10-15', '10-16', '10-17', '10-18', '10-19', '10-20', '10-21'
+  ]
+
+  const SERIES = [
+    [58.2, 59.4, 57.8, 61.2, 60.4, 62.8, 61.5, 63.9, 62.7, 65.1, 64.2, 66.8, 65.9, 68.4],
+    [38.4, 37.9, 38.6, 37.2, 36.8, 37.5, 36.1, 35.4, 36.2, 34.8, 35.1, 33.9, 33.2, 32.6]
+  ]
+
+  const cancels = []
+  const observers = []
+
+  function smoothPath(points) {
+    let d = 'M ' + points[0].x.toFixed(2) + ' ' + points[0].y.toFixed(2)
+    for (let i = 1; i < points.length; i += 1) {
+      const prev = points[i - 1]
+      const cur = points[i]
+      const mid = (prev.x + cur.x) / 2
+      d += ' C ' + mid.toFixed(2) + ' ' + prev.y.toFixed(2) +
+        ', ' + mid.toFixed(2) + ' ' + cur.y.toFixed(2) +
+        ', ' + cur.x.toFixed(2) + ' ' + cur.y.toFixed(2)
+    }
+    return d
+  }
+
+  function setupCard(card, series) {
+    const chart = card.querySelector('[data-chart]')
+    const svg = card.querySelector('[data-svg]')
+    const area = card.querySelector('[data-area]')
+    const line = card.querySelector('[data-line]')
+    const cross = card.querySelector('[data-cross]')
+    const dot = card.querySelector('[data-dot]')
+    const tip = card.querySelector('[data-tip]')
+    const tipDate = card.querySelector('[data-tip-date]')
+    const tipValue = card.querySelector('[data-tip-value]')
+    const live = card.querySelector('[data-live]')
+
+    const decimals = 1
+    const unit = '%'
+    let points = []
+    let width = 0
+    let activeIndex = -1
+    let raf = 0
+    let pendingX = null
+
+    const valueText = (value) => value.toFixed(decimals) + unit
+
+    function build() {
+      width = Math.max(140, chart.clientWidth || 300)
+      svg.setAttribute('viewBox', '0 0 ' + width + ' ' + HEIGHT)
+      svg.setAttribute('width', String(width))
+      svg.setAttribute('height', String(HEIGHT))
+
+      const min = Math.min(...series)
+      const max = Math.max(...series)
+      const span = Math.max(0.001, max - min)
+      const lo = min - span * 0.2
+      const hi = max + span * 0.2
+      const inner = width - PAD_X * 2
+      const last = series.length - 1
+
+      points = series.map((value, index) => ({
+        x: PAD_X + (inner * index) / last,
+        y: TOP + (1 - (value - lo) / (hi - lo)) * (BOTTOM - TOP)
+      }))
+
+      const path = smoothPath(points)
+      line.setAttribute('d', path)
+      area.setAttribute('d', path +
+        ' L ' + points[last].x.toFixed(2) + ' ' + (BOTTOM + 4) +
+        ' L ' + points[0].x.toFixed(2) + ' ' + (BOTTOM + 4) + ' Z')
+
+      if (activeIndex >= 0) show(activeIndex, false)
+    }
+
+    function show(index, announce) {
+      if (!points.length) build()
+      const point = points[index]
+      if (!point) return
+      activeIndex = index
+
+      cross.setAttribute('x1', String(point.x))
+      cross.setAttribute('x2', String(point.x))
+      dot.setAttribute('cx', String(point.x))
+      dot.setAttribute('cy', String(point.y))
+
+      chart.classList.add('is-active')
+      card.classList.add('is-reading')
+
+      tipDate.textContent = DATES[index]
+      tipValue.textContent = valueText(series[index])
+
+      const guard = 46
+      const left = Math.min(Math.max(point.x, guard), width - guard)
+      const below = point.y < 50
+      tip.style.left = left + 'px'
+      tip.style.top = (below ? point.y + 14 : point.y - 12) + 'px'
+      tip.classList.toggle('is-below', below)
+      tip.classList.add('is-on')
+
+      if (announce) live.textContent = DATES[index] + '，' + valueText(series[index])
+    }
+
+    function hide() {
+      if (raf) cancelAnimationFrame(raf)
+      raf = 0
+      pendingX = null
+      activeIndex = -1
+      chart.classList.remove('is-active')
+      card.classList.remove('is-reading')
+      tip.classList.remove('is-on')
+    }
+
+    function moveTo(clientX) {
+      const rect = chart.getBoundingClientRect()
+      if (!rect.width) return
+      const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width))
+      const index = Math.round(ratio * (series.length - 1))
+      if (index !== activeIndex) show(index, false)
+    }
+
+    chart.addEventListener('pointermove', (event) => {
+      pendingX = event.clientX
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        if (pendingX === null) return
+        moveTo(pendingX)
+      })
+    })
+
+    chart.addEventListener('pointerdown', (event) => {
+      moveTo(event.clientX)
+    })
+
+    chart.addEventListener('pointerleave', hide)
+    chart.addEventListener('pointercancel', hide)
+
+    chart.addEventListener('focus', () => {
+      if (activeIndex < 0) show(series.length - 1, true)
+    })
+    chart.addEventListener('blur', hide)
+
+    chart.addEventListener('keydown', (event) => {
+      const last = series.length - 1
+      if (event.key === 'Escape') {
+        hide()
+        return
+      }
+
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' ||
+          event.key === 'Home' || event.key === 'End') {
+        event.preventDefault()
+        if (activeIndex < 0) {
+          show(last, true)
+          return
+        }
+        let next = activeIndex
+        if (event.key === 'ArrowLeft') next = Math.max(0, activeIndex - 1)
+        else if (event.key === 'ArrowRight') next = Math.min(last, activeIndex + 1)
+        else if (event.key === 'Home') next = 0
+        else next = last
+        if (next === activeIndex) {
+          if (event.key === 'Home' || event.key === 'End') show(next, true)
+          return
+        }
+        show(next, true)
+      }
+    })
+
+    build()
+
+    if (typeof ResizeObserver === 'function') {
+      const observer = new ResizeObserver(() => build())
+      observer.observe(chart)
+      observers.push(observer)
+    }
+
+    cancels.push(() => {
+      if (raf) cancelAnimationFrame(raf)
+      raf = 0
+    })
+  }
+
+  const cards = Array.from(document.querySelectorAll('[data-card]'))
+  cards.forEach((card, index) => {
+    const series = SERIES[index] || SERIES[0]
+    setupCard(card, series)
+  })
+
+  window.addEventListener('pagehide', () => {
+    cancels.forEach((cancel) => cancel())
+    cancels.length = 0
+    observers.forEach((observer) => observer.disconnect())
+    observers.length = 0
+  })
+})()
+</script>
+</body>
+</html>

@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>文字逐行入场 · demo</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: #141a2e;
+    --line: #22304d;
+    --text: #e6ebf5;
+    --muted: #8d9ab5;
+    --accent: #5eead4;
+
+    /* 参数默认值，与 meta.json 一致 */
+    --stagger: 120ms;
+    --duration: 600ms;
+    --distance: 24px;
+    --start-delay: 0ms;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1000px 560px at 50% -12%, #1c2745 0%, rgba(11, 16, 32, 0) 66%),
+      var(--bg);
+    color: var(--text);
+    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { width: min(900px, 100%); margin: 0 auto; padding: 0 20px 100px; }
+
+  /* ---------- 顶栏 ---------- */
+  .bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 0;
+    background: linear-gradient(180deg, var(--bg) 45%, rgba(11, 16, 32, 0));
+  }
+  .bar__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+  }
+  .bar__label::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px rgba(94, 234, 212, 0.12);
+  }
+  .btn {
+    appearance: none;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 18px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--accent);
+    background: rgba(94, 234, 212, 0.08);
+    transition: border-color 160ms ease, background 160ms ease;
+  }
+  .btn:hover { border-color: rgba(94, 234, 212, 0.45); background: rgba(94, 234, 212, 0.14); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+  /* ---------- 卡片 ---------- */
+  .card {
+    position: relative;
+    padding: clamp(26px, 4.2vw, 46px);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(30, 38, 63, 0.72) 0%, rgba(20, 26, 46, 0.97) 62%);
+    background-color: var(--card);
+    box-shadow: 0 40px 90px -50px rgba(0, 0, 0, 0.95);
+  }
+  .card--hero { margin-top: 12px; }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 20px;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+  }
+  .eyebrow::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* ---------- 逐行结构 ---------- */
+  .line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.1em;
+    margin-bottom: -0.1em;
+  }
+
+  .line > .rv { display: block; }
+
+  /* 没有脚本时不加 .js，文字保持可见 */
+  .js .rv {
+    opacity: 0;
+    transform: translate3d(0, var(--distance), 0);
+    transition:
+      opacity var(--duration) cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform var(--duration) cubic-bezier(0.22, 0.61, 0.36, 1);
+    transition-delay: calc(var(--start-delay) + var(--i, 0) * var(--stagger));
+  }
+  .js .is-in .rv { opacity: 1; transform: none; }
+
+  .headline {
+    margin: 0 0 22px;
+    font-size: clamp(34px, 6vw, 56px);
+    font-weight: 700;
+    line-height: 1.24;
+    letter-spacing: 0.01em;
+  }
+  .grad {
+    background: linear-gradient(96deg, #e6ebf5 4%, #5eead4 62%, #7dd3fc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .lede {
+    margin: 0;
+    max-width: 60ch;
+    font-size: 15px;
+    line-height: 1.95;
+    color: var(--muted);
+  }
+
+  .specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+  .spec {
+    flex: 1 1 130px;
+    padding: 12px 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(11, 16, 32, 0.5);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+  .spec b {
+    display: block;
+    margin-top: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hint {
+    margin: 16px 2px 0;
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--muted);
+  }
+
+  /* ---------- 滚动段 ---------- */
+  .spacer {
+    display: grid;
+    place-items: center;
+    gap: 10px;
+    height: 64vh;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: #6d7a96;
+    text-align: center;
+  }
+  .spacer span::after {
+    content: "";
+    display: block;
+    width: 1px;
+    height: 46px;
+    margin: 14px auto 0;
+    background: linear-gradient(180deg, rgba(94, 234, 212, 0.6), rgba(94, 234, 212, 0));
+  }
+
+  .h2 {
+    margin: 0 0 18px;
+    font-size: clamp(26px, 4vw, 38px);
+    line-height: 1.32;
+  }
+
+  .steps {
+    margin: 26px 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+  }
+  .steps li {
+    display: flex;
+    gap: 16px;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--muted);
+  }
+  .steps .n {
+    flex: none;
+    padding-top: 2px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .foot {
+    margin-top: 54px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    line-height: 2;
+    color: #6d7a96;
+  }
+  .foot b { color: var(--muted); font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .js .rv {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    .line { overflow: visible; padding-bottom: 0; margin-bottom: 0; }
+  }
+</style>
+<script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+<div class="page">
+
+  <div class="bar">
+    <span class="bar__label">animation / text</span>
+    <button class="btn" id="replay" type="button">重新播放</button>
+  </div>
+
+  <section class="card card--hero" data-reveal>
+    <p class="eyebrow rv">文字逐行入场</p>
+    <h1 class="headline">
+      <span class="line"><span class="rv">先说结论，</span></span>
+      <span class="line"><span class="rv grad">让每一行自己到位。</span></span>
+    </h1>
+    <p class="lede rv">标题按行拆开，每行错开 120ms 上浮 24px，用 600ms 走完。整组只在进入视口时播放一次，播完就交还给排版，不留下任何会抖动的属性。</p>
+    <div class="specs rv">
+      <div class="spec">行间隔<b>120ms</b></div>
+      <div class="spec">单行时长<b>600ms</b></div>
+      <div class="spec">起始位移<b>24px</b></div>
+    </div>
+  </section>
+
+  <p class="hint" id="hint">首屏自动播放。点击右上角「重新播放」可以再看一次，整组会重新布防。</p>
+
+  <div class="spacer" aria-hidden="true">
+    <span>继续向下滚动<br />下一块进入视口时才开始</span>
+  </div>
+
+  <section class="card" data-reveal>
+    <p class="eyebrow rv">滚动触发</p>
+    <h2 class="h2">
+      <span class="line"><span class="rv">进入视口</span></span>
+      <span class="line"><span class="rv">才开始播放</span></span>
+    </h2>
+    <p class="lede rv">这一块在页面下方，只用自己的触发时机，不会在首屏被提前播完。三行说明同样按索引错开。</p>
+    <ul class="steps">
+      <li class="rv"><span class="n">01</span><span>行容器负责裁剪纵向位移，文字不会溢出到相邻行。</span></li>
+      <li class="rv"><span class="n">02</span><span>内层只做位移与透明度，字号与行高全程不变。</span></li>
+      <li class="rv"><span class="n">03</span><span>延迟按序号算出来，增删一行不用改样式。</span></li>
+    </ul>
+  </section>
+
+  <footer class="foot">
+    <p>行间隔 <b>120ms</b> · 单行时长 <b>600ms</b> · 起始位移 <b>24px</b> · 整组延迟 <b>0ms</b></p>
+    <p>开启系统「减弱动态效果」后，所有文字直接以最终位置显示，不做位移与淡入。</p>
+  </footer>
+
+</div>
+
+<script>
+(() => {
+  const roots = Array.from(document.querySelectorAll('[data-reveal]'))
+  const replayBtn = document.getElementById('replay')
+  const hint = document.getElementById('hint')
+
+  // 按 DOM 顺序给每个入场单元编号，延迟 = 序号 × 行间隔
+  roots.forEach((root) => {
+    root.querySelectorAll('.rv').forEach((el, i) => {
+      el.style.setProperty('--i', String(i))
+    })
+  })
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)')
+  if (reduce.matches) {
+    replayBtn.disabled = true
+    hint.textContent = '系统已开启「减弱动态效果」：文字直接以最终位置显示，不做逐行位移。'
+    return
+  }
+
+  const cleanups = []
+  const listen = (target, type, handler, options) => {
+    target.addEventListener(type, handler, options)
+    cleanups.push(() => target.removeEventListener(type, handler, options))
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return
+      entry.target.classList.add('is-in')
+      io.unobserve(entry.target) // 只播一次，播完即解除观察
+    })
+  }, { threshold: 0.25, rootMargin: '0px 0px -8% 0px' })
+
+  roots.forEach((root) => io.observe(root))
+
+  const replay = () => {
+    roots.forEach((root) => {
+      root.classList.remove('is-in')
+      void root.offsetHeight // 强制回流，保证同一元素能重新播放
+      io.observe(root) // 重新布防，进入视口时再次触发
+    })
+    hint.textContent = '已重新布防：回到顶部后再次进入视口即会重播。'
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  listen(replayBtn, 'click', replay)
+
+  const dispose = () => {
+    io.disconnect()
+    cleanups.forEach((fn) => fn())
+    cleanups.length = 0
+  }
+  listen(window, 'pagehide', dispose, { once: true })
+})()
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "id": "skeleton-screen",
+  "name": "骨架屏",
+  "aka": ["骨架加载", "占位骨架", "skeleton loading", "内容占位", "加载占位"],
+  "category": "feedback",
+  "subcategory": "loading",
+  "scenes": ["dashboard", "mobile"],
+  "feel": ["minimal", "subtle"],
+  "params": [
+    { "key": "rows", "label": "占位行数", "default": 4, "type": "number" },
+    { "key": "shimmer", "label": "微光扫过（1 开 0 关）", "default": 1, "type": "number" },
+    { "key": "shimmerDuration", "label": "微光扫过周期", "default": 1400, "type": "number", "unit": "ms" }
+  ],
+  "a11y": "prefers-reduced-motion 下停止微光扫过与淡入淡出，保留静态占位块；加载中容器 aria-busy=true，完成后改为 false",
+  "notFor": ["需要展示下载进度的长时间等待", "每次结构都不固定的自由布局列表", "即时完成的本地操作"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

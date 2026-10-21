@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>分段控件 · demo</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: #141a2e;
+    --line: #22304d;
+    --text: #e6ebf5;
+    --muted: #8d9ab5;
+    --accent: #5eead4;
+    --field: #0f1528;
+    --dur: 220ms;
+    --gap: 4px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 48px 20px;
+    background: radial-gradient(900px 520px at 50% -10%, #18223c 0%, var(--bg) 62%);
+    color: var(--text);
+    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .panel {
+    width: 100%;
+    max-width: 700px;
+    padding: 26px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--card);
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.38);
+  }
+  .eyebrow {
+    margin: 0 0 8px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 { margin: 0 0 6px; font-size: 21px; font-weight: 600; }
+  .sub { margin: 0; max-width: 46ch; font-size: 13px; line-height: 1.65; color: var(--muted); }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 22px;
+  }
+  .range-wrap { display: flex; align-items: center; gap: 8px; }
+  .range-wrap__label { font-size: 11.5px; color: var(--muted); }
+
+  .seg, .range {
+    position: relative;
+    display: inline-grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: var(--gap);
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--field);
+  }
+  .seg { height: 36px; }
+  .range { height: 30px; padding: 3px; gap: 3px; border-radius: 10px; }
+
+  [data-thumb] {
+    position: absolute;
+    top: 4px;
+    left: 0;
+    height: calc(100% - 8px);
+    border: 1px solid rgba(94, 234, 212, 0.26);
+    border-radius: 8px;
+    background: #1d2942;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 2px 8px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .range [data-thumb] { top: 3px; height: calc(100% - 6px); border-radius: 7px; }
+
+  .is-ready [data-thumb] { opacity: 1; transition: transform var(--dur) ease; }
+  .is-static [data-thumb] { transition: none; }
+
+  .seg__item, .range__item {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 160ms ease;
+  }
+  .range__item { padding: 0 12px; border-radius: 7px; font-size: 12px; }
+  .seg__item:hover, .range__item:hover { color: #c9d4e8; }
+  .seg__item[aria-selected="true"], .range__item[aria-checked="true"] {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .seg__item:focus-visible, .range__item:focus-visible {
+    outline: 2px solid rgba(94, 234, 212, 0.8);
+    outline-offset: -2px;
+  }
+
+  .board {
+    margin-top: 18px;
+    padding: 16px 18px 18px;
+    border: 1px solid rgba(34, 48, 77, 0.9);
+    border-radius: 14px;
+    background: #10162a;
+  }
+  .board:focus-visible { outline: 2px solid rgba(94, 234, 212, 0.55); outline-offset: 3px; }
+  .board__top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(34, 48, 77, 0.7);
+  }
+  .board__range {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border: 1px solid rgba(94, 234, 212, 0.3);
+    border-radius: 999px;
+    background: rgba(94, 234, 212, 0.08);
+    font-size: 11.5px;
+    color: var(--accent);
+  }
+  .board__note { font-size: 11px; color: var(--muted); }
+  .board__body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 168px;
+    padding-top: 12px;
+  }
+  .board__body.swap { animation: swapIn var(--dur) ease-out; }
+
+  @keyframes swapIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 13px;
+    border: 1px solid rgba(34, 48, 77, 0.85);
+    border-radius: 11px;
+    background: rgba(15, 21, 40, 0.65);
+  }
+  .kpi__name { font-size: 11.5px; color: var(--muted); }
+  .kpi__value {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .kpi__delta { font-size: 11.5px; color: var(--accent); }
+  .kpi__delta.is-down { color: #fca5a5; }
+
+  .chart__plot {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    height: 132px;
+    border-bottom: 1px solid rgba(34, 48, 77, 0.85);
+  }
+  .bar { flex: 1; display: flex; align-items: flex-end; justify-content: center; height: 100%; }
+  .bar i {
+    display: block;
+    width: 100%;
+    max-width: 28px;
+    border-radius: 5px 5px 2px 2px;
+    background: linear-gradient(180deg, rgba(94, 234, 212, 0.8), rgba(94, 234, 212, 0.12));
+  }
+  .chart__axis {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 12px;
+    margin-top: 8px;
+    font-size: 10.5px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .rows { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+  .row {
+    display: grid;
+    grid-template-columns: minmax(72px, 1fr) 120px 62px 44px;
+    align-items: center;
+    gap: 12px;
+    font-size: 12.5px;
+  }
+  .row__name { color: #c6d2e8; }
+  .row__track { height: 6px; border-radius: 999px; background: #1c2740; overflow: hidden; }
+  .row__track i { display: block; height: 100%; border-radius: 999px; background: rgba(94, 234, 212, 0.65); }
+  .row__value { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+  .row__pct { font-style: normal; font-size: 11.5px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+
+  .status {
+    min-height: 18px;
+    margin: 14px 0 0;
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .foot {
+    margin: 4px 0 0;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  .foot kbd {
+    display: inline-block;
+    min-width: 17px;
+    padding: 1px 5px;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    background: #1a2238;
+    color: #c3cee3;
+    font-family: inherit;
+    font-size: 10.5px;
+    text-align: center;
+  }
+
+  @media (max-width: 620px) {
+    body { padding: 28px 14px; }
+    .panel { padding: 20px 18px; border-radius: 16px; }
+    .toolbar { align-items: flex-start; flex-direction: column; }
+    .row { grid-template-columns: minmax(64px, 1fr) 70px 54px 38px; gap: 8px; }
+    .chart__plot { height: 112px; }
+    .kpi { padding: 10px; gap: 4px; }
+    .kpi__value { font-size: 15px; }
+  }
+
+  @media (max-height: 620px) {
+    body { padding: 20px 16px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .is-ready [data-thumb] { transition: none; }
+    .board__body.swap { animation: none; }
+    .seg__item, .range__item { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <main class="panel" aria-labelledby="title">
+    <header>
+      <p class="eyebrow">组件 · 表单</p>
+      <h1 id="title">分段控件</h1>
+      <p class="sub">点击分段或用方向键切换，指示块会滑向新位置，下方数据同步更新。</p>
+    </header>
+
+    <div class="toolbar">
+      <div class="seg" id="viewSeg" role="tablist" aria-label="视图切换">
+        <span class="seg__thumb" data-thumb aria-hidden="true"></span>
+        <button type="button" class="seg__item" role="tab" id="tab-view-0"
+          aria-selected="true" aria-controls="viewPanel" tabindex="0" data-item>概览</button>
+        <button type="button" class="seg__item" role="tab" id="tab-view-1"
+          aria-selected="false" aria-controls="viewPanel" tabindex="-1" data-item>分析</button>
+        <button type="button" class="seg__item" role="tab" id="tab-view-2"
+          aria-selected="false" aria-controls="viewPanel" tabindex="-1" data-item>报表</button>
+      </div>
+
+      <div class="range-wrap">
+        <span class="range-wrap__label" id="rangeLabelText">时间范围</span>
+        <div class="range" id="rangeSeg" role="radiogroup" aria-labelledby="rangeLabelText">
+          <span data-thumb aria-hidden="true"></span>
+          <button type="button" class="range__item" role="radio" aria-checked="false" tabindex="-1" data-item>今日</button>
+          <button type="button" class="range__item" role="radio" aria-checked="true" tabindex="0" data-item>本周</button>
+          <button type="button" class="range__item" role="radio" aria-checked="false" tabindex="-1" data-item>本月</button>
+        </div>
+      </div>
+    </div>
+
+    <section class="board" id="viewPanel" role="tabpanel" aria-labelledby="tab-view-0" tabindex="0">
+      <div class="board__top">
+        <span class="board__range" id="rangeLabel">本周</span>
+        <span class="board__note" id="rangeNote">2026-10-13 至 10-19 · 09:42 更新</span>
+      </div>
+      <div class="board__body" id="viewBody"></div>
+    </section>
+
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+    <p class="foot"><kbd>Tab</kbd> 进入控件 · <kbd>←</kbd><kbd>→</kbd> 切换 · <kbd>Home</kbd><kbd>End</kbd> 首尾</p>
+  </main>
+
+<script>
+(() => {
+  const DURATION = 220
+
+  const viewSeg = document.getElementById('viewSeg')
+  const rangeSeg = document.getElementById('rangeSeg')
+  const body = document.getElementById('viewBody')
+  const panel = document.getElementById('viewPanel')
+  const rangeLabel = document.getElementById('rangeLabel')
+  const rangeNote = document.getElementById('rangeNote')
+  const status = document.getElementById('status')
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+  document.documentElement.style.setProperty('--dur', DURATION + 'ms')
+
+  const RANGES = [
+    {
+      label: '今日',
+      note: '2026-10-21 · 09:42 更新',
+      kpis: [
+        { name: '访问量', value: '1,284', delta: '6.2%', dir: 'up' },
+        { name: '转化率', value: '4.7%', delta: '0.8%', dir: 'up' },
+        { name: '平均停留', value: '2 分 18 秒', delta: '0.4%', dir: 'up' }
+      ],
+      bars: [
+        { label: '08', value: 32 }, { label: '10', value: 48 }, { label: '12', value: 61 },
+        { label: '14', value: 45 }, { label: '16', value: 72 }, { label: '18', value: 88 },
+        { label: '20', value: 64 }
+      ],
+      rows: [
+        { name: '自然搜索', value: '612', pct: 48 },
+        { name: '直接访问', value: '318', pct: 25 },
+        { name: '社交媒体', value: '246', pct: 19 },
+        { name: '合作导流', value: '108', pct: 8 }
+      ]
+    },
+    {
+      label: '本周',
+      note: '2026-10-13 至 10-19 · 09:42 更新',
+      kpis: [
+        { name: '访问量', value: '9,842', delta: '12.4%', dir: 'up' },
+        { name: '转化率', value: '5.1%', delta: '0.6%', dir: 'down' },
+        { name: '平均停留', value: '2 分 46 秒', delta: '3.2%', dir: 'up' }
+      ],
+      bars: [
+        { label: '一', value: 52 }, { label: '二', value: 68 }, { label: '三', value: 61 },
+        { label: '四', value: 87 }, { label: '五', value: 72 }, { label: '六', value: 95 },
+        { label: '日', value: 83 }
+      ],
+      rows: [
+        { name: '自然搜索', value: '4,208', pct: 43 },
+        { name: '直接访问', value: '2,640', pct: 27 },
+        { name: '社交媒体', value: '1,880', pct: 19 },
+        { name: '合作导流', value: '1,114', pct: 11 }
+      ]
+    },
+    {
+      label: '本月',
+      note: '2026-10-01 至 10-21 · 09:42 更新',
+      kpis: [
+        { name: '访问量', value: '41,206', delta: '8.9%', dir: 'up' },
+        { name: '转化率', value: '4.9%', delta: '1.2%', dir: 'up' },
+        { name: '平均停留', value: '2 分 31 秒', delta: '1.4%', dir: 'down' }
+      ],
+      bars: [
+        { label: '第 1 周', value: 58 }, { label: '第 2 周', value: 74 },
+        { label: '第 3 周', value: 66 }, { label: '第 4 周', value: 89 }
+      ],
+      rows: [
+        { name: '自然搜索', value: '17,820', pct: 43 },
+        { name: '直接访问', value: '11,260', pct: 27 },
+        { name: '社交媒体', value: '7,940', pct: 19 },
+        { name: '合作导流', value: '4,186', pct: 11 }
+      ]
+    }
+  ]
+
+  const VIEWS = [
+    {
+      name: '概览',
+      render(data) {
+        return '<div class="kpis">' + data.kpis.map((kpi) => (
+          '<div class="kpi">' +
+            '<span class="kpi__name">' + kpi.name + '</span>' +
+            '<span class="kpi__value">' + kpi.value + '</span>' +
+            '<span class="kpi__delta is-' + kpi.dir + '">' +
+              (kpi.dir === 'up' ? '▲ +' : '▼ −') + kpi.delta +
+            '</span>' +
+          '</div>'
+        )).join('') + '</div>'
+      }
+    },
+    {
+      name: '分析',
+      render(data) {
+        const bars = data.bars.map((bar) => (
+          '<div class="bar"><i style="height:' + bar.value + '%"></i></div>'
+        )).join('')
+        const axis = data.bars.map((bar) => '<span>' + bar.label + '</span>').join('')
+        return '<div class="chart"><div class="chart__plot">' + bars + '</div>' +
+          '<div class="chart__axis">' + axis + '</div></div>'
+      }
+    },
+    {
+      name: '报表',
+      render(data) {
+        return '<ul class="rows">' + data.rows.map((row) => (
+          '<li class="row">' +
+            '<span class="row__name">' + row.name + '</span>' +
+            '<span class="row__track"><i style="width:' + row.pct + '%"></i></span>' +
+            '<b class="row__value">' + row.value + '</b>' +
+            '<em class="row__pct">' + row.pct + '%</em>' +
+          '</li>'
+        )).join('') + '</ul>'
+      }
+    }
+  ]
+
+  let view = 0
+  let range = 1
+
+  function paint(animate) {
+    const data = RANGES[range]
+    body.innerHTML = VIEWS[view].render(data)
+    rangeLabel.textContent = data.label
+    rangeNote.textContent = data.note
+    panel.setAttribute('aria-labelledby', 'tab-view-' + view)
+    status.textContent = '已切换：' + VIEWS[view].name + ' · ' + data.label
+
+    if (animate && !reduceMotion.matches) {
+      body.classList.remove('swap')
+      void body.offsetWidth
+      body.classList.add('swap')
+    }
+  }
+
+  const frames = []
+  const observers = []
+
+  function initSeg(root, onChange) {
+    const kind = root.dataset.kind || (root.getAttribute('role') === 'tablist' ? 'tab' : 'radio')
+    const selectedAttr = kind === 'tab' ? 'aria-selected' : 'aria-checked'
+    const items = Array.from(root.querySelectorAll('[data-item]'))
+    const thumb = root.querySelector('[data-thumb]')
+    let active = items.findIndex((item) => item.getAttribute(selectedAttr) === 'true')
+    if (active < 0) active = 0
+
+    function move(animate) {
+      const item = items[active]
+      if (!item || !thumb) return
+      if (!animate) root.classList.add('is-static')
+
+      const rootRect = root.getBoundingClientRect()
+      const itemRect = item.getBoundingClientRect()
+      const offset = itemRect.left - rootRect.left - root.clientLeft
+
+      thumb.style.width = itemRect.width + 'px'
+      thumb.style.transform = 'translateX(' + offset + 'px)'
+
+      if (!animate) {
+        void thumb.offsetWidth
+        root.classList.remove('is-static')
+      }
+    }
+
+    function select(next, focus) {
+      if (next < 0 || next >= items.length) return
+      if (next === active) {
+        move(true)
+        if (focus) items[active].focus()
+        return
+      }
+      items[active].setAttribute(selectedAttr, 'false')
+      items[active].tabIndex = -1
+      active = next
+      items[active].setAttribute(selectedAttr, 'true')
+      items[active].tabIndex = 0
+      if (focus) items[active].focus()
+      move(true)
+      onChange(active)
+    }
+
+    root.addEventListener('click', (event) => {
+      const item = event.target.closest('[data-item]')
+      if (!item || !root.contains(item)) return
+      select(items.indexOf(item), false)
+    })
+
+    root.addEventListener('keydown', (event) => {
+      const item = event.target.closest('[data-item]')
+      if (!item) return
+      const index = items.indexOf(item)
+      let next = -1
+
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+        next = (index + 1) % items.length
+      } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+        next = (index - 1 + items.length) % items.length
+      } else if (event.key === 'Home') {
+        next = 0
+      } else if (event.key === 'End') {
+        next = items.length - 1
+      } else if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault()
+        select(index, true)
+        return
+      }
+
+      if (next < 0) return
+      event.preventDefault()
+      select(next, true)
+    })
+
+    const frame = requestAnimationFrame(() => {
+      move(false)
+      root.classList.add('is-ready')
+    })
+    frames.push(frame)
+
+    if (typeof ResizeObserver === 'function') {
+      const observer = new ResizeObserver(() => move(false))
+      observer.observe(root)
+      observer.observe(items[active])
+      observers.push(observer)
+    }
+
+    return {
+      resize() { move(false) }
+    }
+  }
+
+  initSeg(viewSeg, (index) => {
+    view = index
+    paint(true)
+  })
+  initSeg(rangeSeg, (index) => {
+    range = index
+    paint(true)
+  })
+
+  paint(false)
+
+  window.addEventListener('pagehide', () => {
+    observers.forEach((observer) => observer.disconnect())
+    observers.length = 0
+    frames.forEach((frame) => cancelAnimationFrame(frame))
+    frames.length = 0
+  })
+})()
+</script>
+</body>
+</html>

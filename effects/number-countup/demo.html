@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>数字增长 · demo</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: #141a2e;
+    --line: #26304d;
+    --text: #e6ebf5;
+    --muted: #8d9ab5;
+    --accent: #5eead4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 48px 20px;
+    background: radial-gradient(900px 500px at 50% -10%, #1b2540 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  }
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 200px)); gap: 18px; }
+  @media (max-width: 720px) { .stats { grid-template-columns: 1fr; } }
+
+  .stat {
+    padding: 24px 20px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--card);
+  }
+  .stat__value {
+    display: block;
+    min-width: 6ch;
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+  }
+  .stat__label { display: block; margin-top: 8px; font-size: 13px; color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stat__value { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="stats">
+    <div class="stat">
+      <span class="stat__value" data-to="12800" data-suffix="+">0</span>
+      <span class="stat__label">累计构建次数</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value" data-to="99.2" data-decimals="1" data-suffix="%">0</span>
+      <span class="stat__label">可用性</span>
+    </div>
+    <div class="stat">
+      <span class="stat__value" data-to="37" data-suffix=" 天">0</span>
+      <span class="stat__label">平均交付周期</span>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const nf = new Intl.NumberFormat('zh-CN')
+  const values = document.querySelectorAll('.stat__value')
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  const format = (n, decimals) => {
+    const fixed = n.toFixed(decimals)
+    const [int, dec] = fixed.split('.')
+    return nf.format(Number(int)) + (dec ? '.' + dec : '')
+  }
+
+  const run = (el) => {
+    const to = Number(el.dataset.to || 0)
+    const decimals = Number(el.dataset.decimals || 0)
+    const suffix = el.dataset.suffix || ''
+    const duration = Number(el.dataset.duration || 1200)
+
+    if (reduce) {
+      el.textContent = format(to, decimals) + suffix
+      return
+    }
+
+    const start = performance.now()
+    const step = (now) => {
+      const p = Math.min(1, (now - start) / duration)
+      const eased = 1 - Math.pow(1 - p, 3)
+      el.textContent = format(to * eased, decimals) + suffix
+      if (p < 1) requestAnimationFrame(step)
+      else el.textContent = format(to, decimals) + suffix
+    }
+    requestAnimationFrame(step)
+  }
+
+  if (!('IntersectionObserver' in window) || reduce) {
+    values.forEach(run)
+    return
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return
+      run(entry.target)
+      io.unobserve(entry.target)
+    })
+  }, { threshold: 0.3 })
+
+  values.forEach((el) => io.observe(el))
+})()
+</script>
+</body>
+</html>

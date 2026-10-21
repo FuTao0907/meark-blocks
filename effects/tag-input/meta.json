@@ -1,0 +1,19 @@
+{
+  "id": "tag-input",
+  "name": "标签输入",
+  "aka": ["多标签输入", "标签选择器", "tag input", "chip input", "关键词输入"],
+  "category": "component",
+  "subcategory": "form",
+  "scenes": ["form", "dashboard"],
+  "feel": ["minimal"],
+  "params": [
+    { "key": "maxTags", "label": "标签数量上限", "default": 8, "type": "number" },
+    { "key": "separator", "label": "提交键", "default": "Enter", "type": "string" },
+    { "key": "maxLength", "label": "单个标签最大字符数", "default": 12, "type": "number" }
+  ],
+  "a11y": "prefers-reduced-motion 下去掉标签增删的缩放与抖动，只保留颜色与边框变化",
+  "notFor": ["需要远程联想搜索的标签选择", "只允许从固定列表选择的单选场景", "一屏内需要展示上百个标签的场景"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

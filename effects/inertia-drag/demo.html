@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>惯性拖拽 · demo</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: #141a2e;
+    --line: #22304d;
+    --text: #e6ebf5;
+    --muted: #8d9ab5;
+    --accent: #5eead4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 36px 20px;
+    background:
+      radial-gradient(860px 480px at 50% -12%, #1a2542 0%, transparent 72%),
+      radial-gradient(560px 360px at 8% 106%, rgba(94, 234, 212, 0.07), transparent 70%),
+      var(--bg);
+    color: var(--text);
+    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  }
+
+  .wrap { width: min(760px, 100%); }
+  .head { margin-bottom: 4px; }
+  .eyebrow {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 8px 0 10px;
+    font-size: clamp(28px, 4.2vw, 38px);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+  .lede {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .stage {
+    position: relative;
+    isolation: isolate;
+    height: clamp(300px, 44vh, 400px);
+    margin-top: 22px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    overflow: hidden;
+    background-color: var(--card);
+    background-image: radial-gradient(rgba(141, 154, 181, 0.16) 1px, transparent 1px);
+    background-size: 24px 24px;
+    box-shadow: 0 28px 74px rgba(3, 8, 20, 0.6);
+  }
+  .stage::before {
+    content: "";
+    position: absolute;
+    right: -96px;
+    top: -150px;
+    width: 300px;
+    height: 300px;
+    border: 1px solid rgba(94, 234, 212, 0.14);
+    border-radius: 50%;
+    box-shadow:
+      0 0 0 42px rgba(94, 234, 212, 0.035),
+      0 0 0 92px rgba(94, 234, 212, 0.02),
+      inset 0 0 80px rgba(94, 234, 212, 0.05);
+    pointer-events: none;
+  }
+
+  .hud {
+    position: absolute;
+    left: 18px;
+    top: 16px;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    pointer-events: none;
+  }
+  .hud__row {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    color: #7f8ca8;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+  }
+  .hud__value {
+    color: var(--text);
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .hud__unit { font-size: 10px; letter-spacing: 0.04em; }
+  .hud__meter {
+    width: 108px;
+    height: 3px;
+    border-radius: 2px;
+    overflow: hidden;
+    background: rgba(141, 154, 181, 0.2);
+  }
+  .hud__fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #7c9cff);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 80ms linear;
+  }
+
+  .chip {
+    --x: 0px;
+    --y: 0px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 208px;
+    height: 132px;
+    padding: 16px 16px 14px;
+    border-radius: 18px;
+    background: linear-gradient(150deg, #5eead4 0%, #38bdf8 58%, #818cf8 100%);
+    color: #041b22;
+    box-shadow:
+      0 18px 40px rgba(3, 10, 24, 0.45),
+      0 0 0 1px rgba(255, 255, 255, 0.22) inset;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    will-change: transform;
+    transform: translate3d(var(--x), var(--y), 0);
+  }
+  .chip.is-dragging {
+    cursor: grabbing;
+    box-shadow:
+      0 26px 54px rgba(3, 10, 24, 0.55),
+      0 0 0 1px rgba(255, 255, 255, 0.32) inset;
+  }
+  .chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+  .chip__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    opacity: 0.72;
+  }
+  .chip__title {
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .chip__meta {
+    font-size: 11px;
+    opacity: 0.66;
+  }
+  .chip::after {
+    content: "";
+    position: absolute;
+    right: 15px;
+    bottom: 13px;
+    width: 26px;
+    height: 26px;
+    border: 1px solid rgba(4, 27, 34, 0.35);
+    border-radius: 50%;
+  }
+
+  .stage__hint {
+    position: absolute;
+    left: 50%;
+    bottom: 15px;
+    z-index: 2;
+    margin: 0;
+    padding: 6px 12px;
+    border: 1px solid rgba(141, 154, 181, 0.18);
+    border-radius: 999px;
+    background: rgba(11, 16, 32, 0.55);
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 18px;
+    margin-top: 16px;
+  }
+  .reset {
+    height: 38px;
+    padding: 0 16px;
+    border: 1px solid #2b3d5e;
+    border-radius: 10px;
+    background: rgba(94, 234, 212, 0.05);
+    color: #c9f4ee;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 160ms ease, background-color 160ms ease;
+  }
+  .reset:hover {
+    border-color: var(--accent);
+    background: rgba(94, 234, 212, 0.09);
+  }
+  .reset:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .bar__meta {
+    color: #7f8ca8;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 560px) {
+    body { padding: 26px 14px; }
+    .stage { height: clamp(280px, 52vh, 360px); }
+    .chip { width: 176px; height: 116px; }
+    .stage__hint { font-size: 10px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hud__fill { transition: none; }
+    .reset { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="head">
+      <p class="eyebrow">interaction · drag</p>
+      <h1>惯性拖拽</h1>
+      <p class="lede">按住卡片拖动并快速甩出，松手后它会带着速度滑行、在边界轻弹并逐渐停住。键盘聚焦卡片后可用方向键微调位置。</p>
+    </header>
+
+    <section class="stage" data-friction="0.92" data-max-speed="2400" data-bounce="0.42" aria-label="惯性拖拽演示区">
+      <div class="hud" aria-hidden="true">
+        <div class="hud__row">
+          <span class="hud__value">0</span>
+          <span class="hud__unit">px/s</span>
+        </div>
+        <div class="hud__meter"><div class="hud__fill"></div></div>
+      </div>
+
+      <div class="chip" tabindex="0" role="group" aria-label="可拖拽的卡片，按住拖动，方向键微调位置">
+        <div class="chip__top">
+          <span>DRAG</span>
+          <span>01 / 03</span>
+        </div>
+        <div>
+          <div class="chip__title">惯性卡片</div>
+          <div class="chip__meta">松手后滑行 · 边界轻弹</div>
+        </div>
+      </div>
+
+      <p class="stage__hint">按住卡片拖动 · 快速甩出 · 松手滑行</p>
+    </section>
+
+    <div class="bar">
+      <button class="reset" type="button">重置位置</button>
+      <span class="bar__meta">friction 0.92 · maxSpeed 2400px/s · bounce 0.42 · 减弱动态效果时松手即停</span>
+    </div>
+  </main>
+
+<script>
+(() => {
+  const stage = document.querySelector('.stage')
+  const chip = document.querySelector('.chip')
+  const resetBtn = document.querySelector('.reset')
+  const speedEl = document.querySelector('.hud__value')
+  const fillEl = document.querySelector('.hud__fill')
+  if (!stage || !chip || !speedEl || !fillEl) return
+
+  const opts = {
+    friction: Number(stage.dataset.friction) || 0.92,
+    maxSpeed: Number(stage.dataset.maxSpeed) || 2400,
+    bounce: Number(stage.dataset.bounce) || 0.42
+  }
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)')
+  const controller = new AbortController()
+  const signal = controller.signal
+  const pad = 10
+
+  const bounds = { minX: pad, maxX: pad, minY: pad, maxY: pad }
+  const pos = { x: 0, y: 0 }
+  const vel = { x: 0, y: 0 }
+  const grab = { x: 0, y: 0 }
+  let samples = []
+  let dragging = false
+  let activeId = null
+  let raf = 0
+  let lastT = 0
+
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
+
+  function measure() {
+    bounds.minX = pad
+    bounds.minY = pad
+    bounds.maxX = Math.max(pad, stage.clientWidth - chip.offsetWidth - pad)
+    bounds.maxY = Math.max(pad, stage.clientHeight - chip.offsetHeight - pad)
+  }
+
+  function apply() {
+    chip.style.setProperty('--x', pos.x.toFixed(2) + 'px')
+    chip.style.setProperty('--y', pos.y.toFixed(2) + 'px')
+  }
+
+  function paintHud(speed) {
+    const value = Math.max(0, Math.min(opts.maxSpeed, Math.round(speed)))
+    speedEl.textContent = String(value)
+    fillEl.style.transform = 'scaleX(' + (value / opts.maxSpeed).toFixed(3) + ')'
+  }
+
+  function stopMotion() {
+    if (raf) cancelAnimationFrame(raf)
+    raf = 0
+    lastT = 0
+  }
+
+  function center() {
+    measure()
+    pos.x = (bounds.minX + bounds.maxX) / 2
+    pos.y = (bounds.minY + bounds.maxY) / 2
+    vel.x = 0
+    vel.y = 0
+    apply()
+    paintHud(0)
+  }
+
+  function calculateVelocity() {
+    const time = performance.now()
+    const recent = samples.filter((sample) => time - sample.t <= 100)
+    if (recent.length < 2) return { x: 0, y: 0 }
+    const first = recent[0]
+    const last = recent[recent.length - 1]
+    const dt = (last.t - first.t) / 1000
+    if (dt < 0.012) return { x: 0, y: 0 }
+
+    let vx = (last.x - first.x) / dt
+    let vy = (last.y - first.y) / dt
+    const speed = Math.hypot(vx, vy)
+    if (speed > opts.maxSpeed) {
+      vx = (vx / speed) * opts.maxSpeed
+      vy = (vy / speed) * opts.maxSpeed
+    }
+    return { x: vx, y: vy }
+  }
+
+  function frame(time) {
+    raf = 0
+    if (dragging) return
+    if (!lastT) {
+      lastT = time
+      raf = requestAnimationFrame(frame)
+      return
+    }
+
+    const dt = Math.min((time - lastT) / 1000, 0.034)
+    lastT = time
+    pos.x += vel.x * dt
+    pos.y += vel.y * dt
+
+    if (pos.x <= bounds.minX) {
+      pos.x = bounds.minX
+      vel.x = Math.abs(vel.x) * opts.bounce
+    } else if (pos.x >= bounds.maxX) {
+      pos.x = bounds.maxX
+      vel.x = -Math.abs(vel.x) * opts.bounce
+    }
+    if (pos.y <= bounds.minY) {
+      pos.y = bounds.minY
+      vel.y = Math.abs(vel.y) * opts.bounce
+    } else if (pos.y >= bounds.maxY) {
+      pos.y = bounds.maxY
+      vel.y = -Math.abs(vel.y) * opts.bounce
+    }
+
+    const damp = Math.pow(opts.friction, dt * 60)
+    vel.x *= damp
+    vel.y *= damp
+
+    const speed = Math.hypot(vel.x, vel.y)
+    apply()
+
+    if (speed < 8) {
+      vel.x = 0
+      vel.y = 0
+      paintHud(0)
+      lastT = 0
+      return
+    }
+
+    paintHud(speed)
+    raf = requestAnimationFrame(frame)
+  }
+
+  function startDrag(event) {
+    if (event.pointerType === 'mouse' && event.button !== 0) return
+    if (dragging) return
+
+    stopMotion()
+    measure()
+    dragging = true
+    activeId = event.pointerId
+    vel.x = 0
+    vel.y = 0
+    paintHud(0)
+    chip.classList.add('is-dragging')
+    if (chip.setPointerCapture) chip.setPointerCapture(event.pointerId)
+
+    const rect = stage.getBoundingClientRect()
+    grab.x = event.clientX - rect.left - pos.x
+    grab.y = event.clientY - rect.top - pos.y
+    samples = [{ t: performance.now(), x: event.clientX, y: event.clientY }]
+  }
+
+  function moveDrag(event) {
+    if (!dragging || event.pointerId !== activeId) return
+    const rect = stage.getBoundingClientRect()
+    pos.x = clamp(event.clientX - rect.left - grab.x, bounds.minX, bounds.maxX)
+    pos.y = clamp(event.clientY - rect.top - grab.y, bounds.minY, bounds.maxY)
+    apply()
+
+    const time = performance.now()
+    samples.push({ t: time, x: event.clientX, y: event.clientY })
+    while (samples.length > 2 && time - samples[0].t > 110) samples.shift()
+
+    const instant = calculateVelocity()
+    paintHud(Math.hypot(instant.x, instant.y))
+  }
+
+  function endDrag(event) {
+    if (!dragging) return
+    if (event && event.pointerId !== undefined && event.pointerId !== activeId) return
+
+    const id = activeId
+    const cancelled = Boolean(event && event.type === 'pointercancel')
+    dragging = false
+    activeId = null
+    chip.classList.remove('is-dragging')
+    if (id !== null && chip.hasPointerCapture(id)) {
+      chip.releasePointerCapture(id)
+    }
+
+    if (cancelled || reduce.matches) {
+      vel.x = 0
+      vel.y = 0
+      paintHud(0)
+      return
+    }
+
+    const released = calculateVelocity()
+    vel.x = released.x
+    vel.y = released.y
+    if (Math.hypot(vel.x, vel.y) < 30) {
+      vel.x = 0
+      vel.y = 0
+      paintHud(0)
+      return
+    }
+
+    lastT = 0
+    if (!raf) raf = requestAnimationFrame(frame)
+  }
+
+  function cancelDrag() {
+    const id = activeId
+    dragging = false
+    activeId = null
+    chip.classList.remove('is-dragging')
+    if (id !== null && chip.hasPointerCapture(id)) {
+      chip.releasePointerCapture(id)
+    }
+    stopMotion()
+    vel.x = 0
+    vel.y = 0
+    paintHud(0)
+  }
+
+  function moveByKey(dx, dy) {
+    if (dragging) return
+    stopMotion()
+    vel.x = 0
+    vel.y = 0
+    pos.x = clamp(pos.x + dx, bounds.minX, bounds.maxX)
+    pos.y = clamp(pos.y + dy, bounds.minY, bounds.maxY)
+    apply()
+    paintHud(0)
+  }
+
+  chip.addEventListener('pointerdown', startDrag, { signal })
+  chip.addEventListener('pointermove', moveDrag, { signal })
+  chip.addEventListener('pointerup', endDrag, { signal })
+  chip.addEventListener('pointercancel', endDrag, { signal })
+  chip.addEventListener('lostpointercapture', () => {
+    if (dragging) endDrag()
+  }, { signal })
+
+  chip.addEventListener('keydown', (event) => {
+    const step = event.shiftKey ? 40 : 16
+    let dx = 0
+    let dy = 0
+    if (event.key === 'ArrowLeft') dx = -step
+    else if (event.key === 'ArrowRight') dx = step
+    else if (event.key === 'ArrowUp') dy = -step
+    else if (event.key === 'ArrowDown') dy = step
+    else return
+    event.preventDefault()
+    moveByKey(dx, dy)
+  }, { signal })
+
+  resetBtn.addEventListener('click', () => {
+    if (dragging) endDrag()
+    stopMotion()
+    center()
+  }, { signal })
+
+  const resizeObserver = new ResizeObserver(() => {
+    measure()
+    pos.x = clamp(pos.x, bounds.minX, bounds.maxX)
+    pos.y = clamp(pos.y, bounds.minY, bounds.maxY)
+    apply()
+  })
+  resizeObserver.observe(stage)
+
+  window.addEventListener('blur', () => {
+    if (dragging) cancelDrag()
+    stopMotion()
+    vel.x = 0
+    vel.y = 0
+    paintHud(0)
+  }, { signal })
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) return
+    if (dragging) cancelDrag()
+    stopMotion()
+    vel.x = 0
+    vel.y = 0
+    paintHud(0)
+  }, { signal })
+
+  function destroy() {
+    controller.abort()
+    stopMotion()
+    resizeObserver.disconnect()
+    window.removeEventListener('pagehide', destroy)
+  }
+  window.addEventListener('pagehide', destroy)
+
+  measure()
+  center()
+})()
+</script>
+</body>
+</html>

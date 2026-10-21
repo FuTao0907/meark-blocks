@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>瀑布流布局 · demo</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --card: #141a2e;
+    --line: #22304d;
+    --text: #e6ebf5;
+    --muted: #8d9ab5;
+    --accent: #5eead4;
+    --gap: 16px;
+    --reflow: 280ms;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 44px 20px 72px;
+    background: radial-gradient(900px 480px at 50% -12%, #1b2540 0%, var(--bg) 62%);
+    color: var(--text);
+    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  }
+  .stage { max-width: 1080px; margin: 0 auto; }
+  .head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+  h1 { margin: 0 0 6px; font-size: 20px; letter-spacing: .02em; }
+  .hint { margin: 0; max-width: 560px; font-size: 12.5px; line-height: 1.8; color: var(--muted); }
+  .hint b { color: var(--accent); font-weight: 600; }
+  .chip {
+    flex: none;
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 11px;
+    letter-spacing: .04em;
+    color: var(--muted);
+  }
+
+  .masonry {
+    position: relative;
+    width: 100%;
+    transition: height var(--reflow) cubic-bezier(.2, .8, .2, 1);
+  }
+  .card {
+    display: block;
+    width: 100%;
+    padding: 0;
+    margin: 0 0 var(--gap);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--card);
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    appearance: none;
+    transition: transform var(--reflow) cubic-bezier(.2, .8, .2, 1), border-color 180ms ease;
+  }
+  .masonry.is-masonry .card { position: absolute; top: 0; left: 0; margin-bottom: 0; }
+  /* 首次布局关闭过渡，避免加载时从左上角滑入 */
+  .masonry.is-initial, .masonry.is-initial .card { transition: none; }
+  .card:hover { border-color: #35507a; }
+  .card.is-open { border-color: rgba(94, 234, 212, 0.45); }
+  .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .thumb { position: relative; display: block; }
+  .thumb::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(260px 120px at 18% 0%, rgba(255, 255, 255, .12), transparent 70%);
+  }
+  .thumb--1 { height: 96px; background: linear-gradient(140deg, #1f4d5c, #123040); }
+  .thumb--2 { height: 132px; background: linear-gradient(140deg, #2a2f5c, #151a33); }
+  .thumb--3 { height: 78px; background: linear-gradient(140deg, #25405a, #141f33); }
+  .thumb--4 { height: 150px; background: linear-gradient(140deg, #3c2f52, #1b1730); }
+  .thumb--5 { height: 108px; background: linear-gradient(140deg, #1f4a46, #102523); }
+  .thumb--6 { height: 86px; background: linear-gradient(140deg, #3a3346, #1a1722); }
+  .thumb--7 { height: 124px; background: linear-gradient(140deg, #23405f, #111c2c); }
+  .thumb--8 { height: 94px; background: linear-gradient(140deg, #2f3b4e, #161d29); }
+  .thumb--9 { height: 140px; background: linear-gradient(140deg, #2b4a57, #132228); }
+
+  .card__body { display: block; padding: 14px 16px 16px; }
+  .card__tag {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(94, 234, 212, 0.1);
+  }
+  .card__title { display: block; margin-bottom: 6px; font-size: 15px; font-weight: 600; }
+  .card__text { display: block; font-size: 12.5px; line-height: 1.7; color: var(--muted); }
+  .card__more {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #26304d;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+  .card.is-open .card__more { display: block; }
+  .card__meta { display: block; margin-top: 12px; font-size: 11px; letter-spacing: .05em; color: #6b7794; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .masonry.is-masonry, .masonry.is-masonry .card { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <header class="head">
+      <div>
+        <h1>瀑布流布局</h1>
+        <p class="hint">点击任意卡片展开或收起摘要，卡片会重新流入最短的一列；缩小窗口可看到列数在 <b>3 / 2 / 1</b> 之间切换，间距始终保持一致。</p>
+      </div>
+      <span class="chip" data-chip>3 列 · 间距 16px</span>
+    </header>
+
+    <div class="masonry" data-masonry>
+      <button class="card" type="button" aria-expanded="false">
+        <span class="thumb thumb--1" aria-hidden="true"></span>
+        <span class="card__body">
+          <span class="card__tag">品牌官网</span>
+          <span class="card__title">北岸咖啡</span>
+          <span class="card__text">以港口晨雾为线索的视觉系统，落地页与包装同源。</span>
+          <span class="card__more">项目覆盖品牌手册、门店导视与线上预订页，主色取自咖啡渍与海雾的中间值，标题字重统一压到 600。</span>
+          <span class="card__meta">2026 · 视觉设计</span>
+        </span>
+      </button>
+
+      <button class="card" type="button" aria-expanded="false">
+        <span class="thumb thumb--2" aria-hidden="true"></span>
+        <span class="card__body">
+          <span class="card__tag">空间体验</span>
+          <span class="card__title">云杉民宿</span>
+          <span class="card__text">预订页把房型、天气与到达路线压进同一屏。</span>
+          <span class="card__more">三档房型的库存状态与最低价并排展示，日期选择后房价与剩余房量同步更新，避免二次跳转。</span>
+          <span class="card__meta">2026 · 产品设计</span>
+        </span>
+      </button>
+
+      <button class="card" type="button" aria-expanded="false">
+        <span class="thumb thumb--3" aria-hidden="true"></span>
+        <span class="card__body">
+          <span class="card__tag">活动视觉</span>
+          <span class="card__title">城市夜跑</span>
+          <span class="card__text">荧光绿与深蓝的对撞，跑道路线做成导视贴纸。</span>
+          <span class="card__meta">2026 · 平面设计</span>
+        </span>
+      </button>
+
+      <button class="card" type="button" aria-expanded="false">
+        <span class="thumb thumb--4" aria-hidden="true"></span>
+        <span class="card__body">
+          <span class="card__tag">系列海报</span>
+          <span class="card__title">极光音乐节</span>
+          <span class="card__text">连续三晚的演出阵容，用渐变叠印区分主舞台与实验舞台。</span>
+          <span class="card__more">海报、票根、手环共用同一套渐变色阶，现场导视按色阶分区，观众不需要读文字也能找到场地。</span>
+          <span class="card__meta">2026 · 视觉设计</span>
+        </span>
+      </button>
+
+      <button class="card" type="button" aria-expanded="false">
+        <span class="thumb thumb--5" aria-hidden="true"></span>
+        <span class="card__body">
+          <span class="card__tag">包装</span>
+          <span class="card__title">森野茶事</span>
+          <span class="card__text">六款茶的色标体系，罐身只保留一条横线。</span>
+          <span class="card__meta">2026 · 包装设计</span>
+        </span>
+      </button>
+
+      <button class="card" type="button" aria-expanded="false">
+        <span class="thumb thumb--6" aria-hidden="true"></span>
+        <span class="card__body">
+          <span class="card__tag">摄影</span>
+          <span class="card__title">拾光集</span>
+          <span class="card__text">一百二十张街拍的线上影集，翻页只靠滚动。</span>
+          <span class="card__more">每张照片下方只标注拍摄街区与时间，不写说明文字，让观者自己串联线索。</span>
+          <span class="card__meta">2026 · 摄影编辑</span>
+        </span>
+      </button>
+
+      <button class="card" type="button" aria-expanded="false">
+        <span class="thumb thumb--7" aria-hidden="true"></span>
+        <span class="card__body">
+          <span class="card__tag">文档站</span>
+          <span class="card__title">方舟开源文档</span>
+          <span class="card__text">首屏即搜索，示例代码可一键复制。</span>
+          <span class="card__more">左侧目录、正文、右侧参数表三栏，移动端折叠为单栏，代码块保留行号与复制按钮。</span>
+          <span class="card__meta">2026 · 前端开发</span>
+        </span>
+      </button>
+
+      <button class="card" type="button" aria-expanded="false">
+        <span class="thumb thumb--8" aria-hidden="true"></span>
+        <span class="card__body">
+          <span class="card__tag">营地</span>
+          <span class="card__title">山间滑雪营地</span>
+          <span class="card__text">雪季套餐与装备租赁放在同一张卡片里。</span>
+          <span class="card__meta">2026 · 网页设计</span>
+        </span>
+      </button>
+
+      <button class="card" type="button" aria-expanded="false">
+        <span class="thumb thumb--9" aria-hidden="true"></span>
+        <span class="card__body">
+          <span class="card__tag">数据看板</span>
+          <span class="card__title">潮汐指标台</span>
+          <span class="card__text">把日活、留存与付费拆成三块可扫读的指标区。</span>
+          <span class="card__more">指标卡按重要度排序，异常值用同一套阈值规则着色，顶部只留一个时间范围选择器。</span>
+          <span class="card__meta">2026 · 产品设计</span>
+        </span>
+      </button>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const wrap = document.querySelector('[data-masonry]')
+  if (!wrap) return
+  const chip = document.querySelector('[data-chip]')
+
+  const cards = Array.from(wrap.querySelectorAll('.card'))
+  const gap = parseFloat(getComputedStyle(wrap).getPropertyValue('--gap')) || 16
+  let rafId = 0
+  let initRaf = 0
+  let started = false
+  let lastWidth = 0
+
+  const columnsFor = (width) => (width >= 860 ? 3 : width >= 580 ? 2 : 1)
+
+  const layout = () => {
+    rafId = 0
+    const width = wrap.clientWidth
+    if (!width) return
+
+    const cols = columnsFor(width)
+    const colWidth = (width - gap * (cols - 1)) / cols
+    const tops = new Array(cols).fill(0)
+
+    cards.forEach((card) => {
+      card.style.width = colWidth + 'px'
+    })
+
+    cards.forEach((card) => {
+      let target = 0
+      for (let i = 1; i < cols; i += 1) {
+        if (tops[i] < tops[target] - 0.5) target = i
+      }
+      const x = target * (colWidth + gap)
+      const y = tops[target]
+      card.style.transform = 'translate3d(' + x.toFixed(2) + 'px, ' + y.toFixed(2) + 'px, 0)'
+      tops[target] = y + card.offsetHeight + gap
+    })
+
+    wrap.style.height = Math.max(Math.max.apply(null, tops) - gap, 0) + 'px'
+    lastWidth = width
+    if (chip) chip.textContent = cols + ' 列 · 间距 ' + Math.round(gap) + 'px'
+
+    if (!started) {
+      started = true
+      initRaf = requestAnimationFrame(() => {
+        initRaf = 0
+        wrap.classList.remove('is-initial')
+      })
+    }
+  }
+
+  const schedule = () => {
+    if (rafId) return
+    rafId = requestAnimationFrame(layout)
+  }
+
+  const onCardClick = (event) => {
+    const card = event.currentTarget
+    const open = card.classList.toggle('is-open')
+    card.setAttribute('aria-expanded', String(open))
+    schedule()
+  }
+
+  cards.forEach((card) => card.addEventListener('click', onCardClick))
+
+  let observer = null
+  if ('ResizeObserver' in window) {
+    observer = new ResizeObserver(() => {
+      if (wrap.clientWidth !== lastWidth) schedule()
+    })
+    observer.observe(wrap)
+  } else {
+    window.addEventListener('resize', schedule)
+  }
+
+  const cleanup = () => {
+    if (rafId) {
+      cancelAnimationFrame(rafId)
+      rafId = 0
+    }
+    if (initRaf) {
+      cancelAnimationFrame(initRaf)
+      initRaf = 0
+    }
+    if (observer) {
+      observer.disconnect()
+      observer = null
+    } else {
+      window.removeEventListener('resize', schedule)
+    }
+    cards.forEach((card) => card.removeEventListener('click', onCardClick))
+    window.removeEventListener('pagehide', cleanup)
+  }
+
+  window.addEventListener('pagehide', cleanup)
+  wrap.classList.add('is-masonry', 'is-initial')
+  layout()
+})()
+</script>
+</body>
+</html>

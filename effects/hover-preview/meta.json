@@ -1,0 +1,19 @@
+{
+  "id": "hover-preview",
+  "name": "悬停预览",
+  "aka": ["悬浮预览卡", "行悬停预览", "hover preview", "列表预览浮层", "项目预览"],
+  "category": "interaction",
+  "subcategory": "hover",
+  "scenes": ["portfolio", "dashboard"],
+  "feel": ["subtle", "premium"],
+  "params": [
+    { "key": "delay", "label": "首次出现延迟", "default": 120, "type": "number", "unit": "ms" },
+    { "key": "scale", "label": "预览卡缩放", "default": 1.04, "type": "number" },
+    { "key": "offset", "label": "与行的水平间距", "default": 18, "type": "number", "unit": "px" }
+  ],
+  "a11y": "prefers-reduced-motion 下取消缩放与位移并取消延迟，预览仅以透明度变化即时出现",
+  "notFor": ["触摸屏为主要输入的页面", "需要同时对比多行信息的表格", "行高不足 48px 的紧凑列表"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

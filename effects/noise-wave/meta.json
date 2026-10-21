@@ -1,0 +1,20 @@
+{
+  "id": "noise-wave",
+  "name": "噪声波浪背景",
+  "aka": ["正弦波背景", "波浪动效", "流体波浪", "noise wave", "ambient wave"],
+  "category": "canvas",
+  "subcategory": "ambient",
+  "scenes": ["landing", "marketing"],
+  "feel": ["tech", "bold"],
+  "params": [
+    { "key": "amplitude", "label": "波浪振幅", "default": 24, "type": "number", "unit": "px" },
+    { "key": "speed", "label": "漂移速度倍率", "default": 0.6, "type": "number" },
+    { "key": "lines", "label": "波浪层数", "default": 4, "type": "number" },
+    { "key": "color", "label": "波浪主色", "default": "94, 234, 212", "type": "string" }
+  ],
+  "a11y": "prefers-reduced-motion 下不启动动画循环，只静态绘制一帧完整波形",
+  "notFor": ["正文阅读为主的长文档页", "需要严格静态截图比对的场景", "低功耗常驻的大屏监控"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

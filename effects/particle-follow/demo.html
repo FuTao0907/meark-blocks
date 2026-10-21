@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>粒子跟随 · demo</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --line: #26304d;
+    --text: #e6ebf5;
+    --muted: #8d9ab5;
+    --accent: #5eead4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 40px 20px;
+    background: radial-gradient(900px 500px at 50% -10%, #1b2540 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  }
+  .stage {
+    position: relative;
+    width: min(720px, 100%);
+    height: 380px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #121a30, #0d1324);
+    cursor: crosshair;
+  }
+  .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .stage__hint {
+    position: absolute;
+    left: 18px;
+    bottom: 14px;
+    z-index: 1;
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .stage__badge {
+    position: absolute;
+    right: 18px;
+    top: 14px;
+    z-index: 1;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(94, 234, 212, 0.1);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <section class="stage" id="stage">
+    <canvas id="cv" aria-hidden="true"></canvas>
+    <span class="stage__badge">canvas</span>
+    <p class="stage__hint">在这个区域内移动指针试试</p>
+  </section>
+
+<script>
+(() => {
+  const stage = document.getElementById('stage')
+  const cv = document.getElementById('cv')
+  const ctx = cv.getContext('2d')
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (!ctx) return
+
+  const POOL = 60
+  const LIFE = 900
+  const particles = Array.from({ length: POOL }, () => ({ x: 0, y: 0, vx: 0, vy: 0, born: -1, alive: false }))
+  let cursor = 0
+  let raf = 0
+  let running = false
+  let lastSpawn = 0
+  let w = 0, h = 0, dpr = 1
+
+  const resize = () => {
+    const r = stage.getBoundingClientRect()
+    dpr = Math.min(window.devicePixelRatio || 1, 2)
+    w = r.width
+    h = r.height
+    cv.width = Math.round(w * dpr)
+    cv.height = Math.round(h * dpr)
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  }
+
+  const spawn = (x, y) => {
+    const p = particles[cursor]
+    cursor = (cursor + 1) % POOL
+    p.x = x
+    p.y = y
+    const a = Math.random() * Math.PI * 2
+    const s = 0.4 + Math.random() * 1.1
+    p.vx = Math.cos(a) * s
+    p.vy = Math.sin(a) * s
+    p.born = performance.now()
+    p.alive = true
+  }
+
+  const frame = (now) => {
+    ctx.clearRect(0, 0, w, h)
+    let any = false
+    for (const p of particles) {
+      if (!p.alive) continue
+      const age = now - p.born
+      if (age >= LIFE) { p.alive = false; continue }
+      any = true
+      const t = age / LIFE
+      p.x += p.vx
+      p.y += p.vy
+      p.vx *= 0.98
+      p.vy *= 0.98
+      const alpha = (1 - t) * 0.85
+      const r = 3 * (1 - t * 0.7)
+      ctx.beginPath()
+      ctx.fillStyle = 'rgba(94, 234, 212, ' + alpha.toFixed(3) + ')'
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    if (any) {
+      raf = requestAnimationFrame(frame)
+    } else {
+      running = false
+      raf = 0
+    }
+  }
+
+  const kick = () => {
+    if (reduce || running) return
+    running = true
+    raf = requestAnimationFrame(frame)
+  }
+
+  const onMove = (e) => {
+    if (reduce) return
+    const r = stage.getBoundingClientRect()
+    const x = e.clientX - r.left
+    const y = e.clientY - r.top
+    const now = performance.now()
+    if (now - lastSpawn > 28) {
+      lastSpawn = now
+      spawn(x, y)
+      kick()
+    }
+  }
+
+  stage.addEventListener('pointermove', onMove)
+  window.addEventListener('resize', resize)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (raf) cancelAnimationFrame(raf)
+      raf = 0
+      running = false
+    } else if (particles.some((p) => p.alive)) {
+      kick()
+    }
+  })
+
+  resize()
+})()
+</script>
+</body>
+</html>

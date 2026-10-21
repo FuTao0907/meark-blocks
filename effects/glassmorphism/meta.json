@@ -1,0 +1,20 @@
+{
+  "id": "glassmorphism",
+  "name": "玻璃拟态",
+  "aka": ["毛玻璃卡片", "磨砂玻璃", "glass card", "frosted glass", "背景模糊面板"],
+  "category": "visual",
+  "subcategory": "surface",
+  "scenes": ["landing", "dashboard"],
+  "feel": ["premium", "tech"],
+  "params": [
+    { "key": "blur", "label": "背景模糊半径", "default": 16, "type": "number", "unit": "px" },
+    { "key": "opacity", "label": "玻璃底色不透明度", "default": 0.12, "type": "number" },
+    { "key": "radius", "label": "面板圆角", "default": 20, "type": "number", "unit": "px" },
+    { "key": "tint", "label": "玻璃色调", "default": "255, 255, 255", "type": "string" }
+  ],
+  "a11y": "prefers-reduced-motion 下取消光斑位移与悬停上移，只保留静态模糊和焦点环",
+  "notFor": ["正文密集的长文页面", "低端移动设备上的大面积面板", "背景为纯色且无层次的内容区"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

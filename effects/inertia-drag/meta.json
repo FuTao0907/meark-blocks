@@ -1,0 +1,19 @@
+{
+  "id": "inertia-drag",
+  "name": "惯性拖拽",
+  "aka": ["甩动拖拽", "惯性滑动卡片", "inertia drag", "可甩卡片", "拖拽惯性"],
+  "category": "interaction",
+  "subcategory": "drag",
+  "scenes": ["portfolio", "marketing"],
+  "feel": ["playful", "bold"],
+  "params": [
+    { "key": "friction", "label": "速度衰减系数", "default": 0.92, "type": "number" },
+    { "key": "maxSpeed", "label": "松手速度上限", "default": 2400, "type": "number", "unit": "px/s" },
+    { "key": "bounce", "label": "边界反弹系数", "default": 0.42, "type": "number" }
+  ],
+  "a11y": "prefers-reduced-motion 下保留直接拖拽，但松手立即停止，不产生惯性滑行与边界反弹",
+  "notFor": ["需要精确选区的画布工具", "表单必填项的操作区域", "页面主要滚动依赖触摸滑动的移动端"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

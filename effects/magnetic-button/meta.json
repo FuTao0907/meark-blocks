@@ -1,0 +1,19 @@
+{
+  "id": "magnetic-button",
+  "name": "磁吸按钮",
+  "aka": ["磁力按钮", "吸附按钮", "magnetic button", "指针吸引按钮", "磁性 CTA"],
+  "category": "interaction",
+  "subcategory": "pointer",
+  "scenes": ["landing", "marketing"],
+  "feel": ["playful", "tech"],
+  "params": [
+    { "key": "strength", "label": "吸引强度", "default": 0.3, "type": "number" },
+    { "key": "radius", "label": "影响半径", "default": 120, "type": "number", "unit": "px" },
+    { "key": "returnMs", "label": "回弹时长", "default": 420, "type": "number", "unit": "ms" }
+  ],
+  "a11y": "prefers-reduced-motion 下不产生磁吸位移，按钮保持静止，只保留悬停变色与键盘焦点环",
+  "notFor": ["以触摸屏为主要输入方式的页面", "表单的确认与删除按钮", "图标排布紧凑的工具栏"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}

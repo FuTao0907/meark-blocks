@@ -1,0 +1,20 @@
+{
+  "id": "number-countup",
+  "name": "数字增长",
+  "aka": ["数字滚动", "计数动画", "count up", "数字递增", "统计数字动效"],
+  "category": "animation",
+  "subcategory": "scroll",
+  "scenes": ["landing", "dashboard", "marketing"],
+  "feel": ["premium", "subtle", "tech"],
+  "params": [
+    { "key": "duration", "label": "增长时长", "default": 1200, "type": "number", "unit": "ms" },
+    { "key": "decimals", "label": "小数位数", "default": 0, "type": "number" },
+    { "key": "from", "label": "起始值", "default": 0, "type": "number" },
+    { "key": "to", "label": "目标值", "default": 12800, "type": "number" }
+  ],
+  "a11y": "prefers-reduced-motion 下直接显示最终值",
+  "notFor": ["需要实时刷新的数据看板", "会频繁重排的列表", "金额等必须精确逐位可读的场景"],
+  "preview": "demo.html",
+  "version": 1,
+  "updated": "2026-10-21"
+}
