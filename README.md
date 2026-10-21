@@ -94,4 +94,4 @@ docs/PRD.md     产品文档
 npm run build   # 本地构建：生成 catalog.json、复制 demo，输出到 dist/
 ```
 
-线上地址 <https://futao0907.github.io/meark-blocks/>。自定义域名 `blocks.meark.cn` 的 DNS 还没配（`public/CNAME` 已暂时移除）；配置好 CNAME 记录后放回 `public/CNAME` 即可。
+线上地址 <https://futao0907.github.io/meark-blocks/>。自定义域名 `blocks.meark.cn` 写在 `public/CNAME`，会随构建进入 `dist/`；该域名目前还没有 DNS 解析，把 CNAME 记录指向 `futao0907.github.io`（并在 Pages 设置里填同一域名）之后即可切换。
