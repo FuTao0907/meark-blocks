@@ -143,7 +143,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   height: 17px;
   border: 0;
   border-radius: 50%;
-  background: rgba(94, 234, 212, 0.18);
+  background: rgba(232, 184, 109, 0.18);
   color: var(--accent);
   font-size: 12px;
   line-height: 1;
@@ -210,5 +210,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 .composer__foot { display: flex; gap: 9px; justify-content: flex-end; }
 </style>
+
 
 

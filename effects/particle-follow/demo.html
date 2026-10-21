@@ -68,7 +68,7 @@
     border-radius: 999px;
     font-size: 11px;
     color: var(--accent);
-    background: rgba(94, 234, 212, 0.1);
+    background: rgba(232, 184, 109, 0.1);
     pointer-events: none;
   }
 </style>
@@ -146,7 +146,7 @@
       const alpha = (1 - t) * 0.85
       const r = 3 * (1 - t * 0.7)
       ctx.beginPath()
-      ctx.fillStyle = 'rgba(94, 234, 212, ' + alpha.toFixed(3) + ')'
+      ctx.fillStyle = 'rgba(232, 184, 109, ' + alpha.toFixed(3) + ')'
       ctx.arc(p.x, p.y, r, 0, Math.PI * 2)
       ctx.fill()
     }
@@ -201,7 +201,7 @@
     for (let i = 0; i < dots; i += 1) {
       const a = (i / dots) * Math.PI * 2
       ctx.beginPath()
-      ctx.fillStyle = 'rgba(94, 234, 212, ' + (0.22 + (i % 5) * 0.09).toFixed(2) + ')'
+      ctx.fillStyle = 'rgba(232, 184, 109, ' + (0.22 + (i % 5) * 0.09).toFixed(2) + ')'
       ctx.arc(cx + Math.cos(a) * radius, cy + Math.sin(a) * radius, 2.6, 0, Math.PI * 2)
       ctx.fill()
     }
@@ -212,3 +212,4 @@
 </script>
 </body>
 </html>
+

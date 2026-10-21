@@ -72,11 +72,11 @@ const aka = computed(() => props.block.aka.slice(0, 3).join(' / '))
 
 .card:focus-visible {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.16);
+  box-shadow: 0 0 0 3px rgba(232, 184, 109, 0.16);
 }
 
 .card--on {
-  border-color: rgba(94, 234, 212, 0.55);
+  border-color: rgba(232, 184, 109, 0.55);
 }
 
 .card__head {
@@ -105,7 +105,7 @@ const aka = computed(() => props.block.aka.slice(0, 3).join(' / '))
 .card__pick--on {
   border-color: transparent;
   background: var(--accent);
-  color: #04231f;
+  color: #241a08;
   font-weight: 700;
 }
 
@@ -142,4 +142,5 @@ const aka = computed(() => props.block.aka.slice(0, 3).join(' / '))
 
 .dot { opacity: 0.5; }
 </style>
+
 
