@@ -27,15 +27,9 @@ jobs:
 
       - run: npm ci
 
-      # 生成 catalog.json 并复制 demo（同时做通用层禁词校验，不通过则构建失败）
-      - run: npm run catalog
-
-      # 绑定自定义域名 blocks.meark.cn 时 base 取根路径。
-      # 若先用 <user>.github.io/<repo>/ 访问，改成 /${{ github.event.repository.name }}/
+      # npm run build = 生成 catalog.json（含通用层禁词校验）+ vite build
       - name: Build
-        run: npx vite build
-        env:
-          VITE_BASE: /
+        run: npm run build
 
       - uses: actions/configure-pages@v5
 
@@ -52,3 +46,4 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
