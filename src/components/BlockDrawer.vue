@@ -9,149 +9,224 @@ const props = defineProps<{ block: Block; adapter: string }>()
 const emit = defineEmits<{ close: [] }>()
 
 const { copy, copiedKey } = useClipboard()
-const showPreview = ref(false)
+
+// 演示按桌面逻辑尺寸渲染再等比缩放：保证整个版式都能看到，而不是被窄栏裁掉
+const LOGICAL_W = 1024
+const LOGICAL_H = 640
+
+const stageEl = ref<HTMLElement | null>(null)
+const scale = ref(0.5)
+
+const demoUrl = computed(() => `${import.meta.env.BASE_URL}effects/${props.block.id}/demo.html`)
+const frameStyle = computed(() => ({
+  width: `${LOGICAL_W}px`,
+  height: `${LOGICAL_H}px`,
+  transform: `scale(${scale.value})`,
+}))
+const stageStyle = computed(() => ({ height: `${Math.round(LOGICAL_H * scale.value)}px` }))
 
 const universalPrompt = computed(() => props.block.promptRaw)
 const fullPrompt = computed(() => `${props.block.promptRaw}\n\n【技术栈适配】\n${props.adapter}`.trim())
-const demoUrl = computed(() => `${import.meta.env.BASE_URL}effects/${props.block.id}/demo.html`)
 
-const sceneText = computed(() =>
-  props.block.scenes.map((s) => labelOf(SCENE_LABELS, s)).join(' / ') || '通用',
+const sceneText = computed(
+  () => props.block.scenes.map((s) => labelOf(SCENE_LABELS, s)).join(' / ') || '通用',
 )
 const feelText = computed(() => props.block.feel.map((f) => labelOf(FEEL_LABELS, f)).join(' / ') || '—')
 const categoryText = computed(() => labelOf(CATEGORY_LABELS, props.block.category))
+
+let ro: ResizeObserver | null = null
+
+function measure() {
+  if (!stageEl.value) return
+  const w = stageEl.value.clientWidth
+  if (w > 0) scale.value = Math.min(1, w / LOGICAL_W)
+}
 
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') emit('close')
 }
 
-onMounted(() => window.addEventListener('keydown', onKeydown))
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
+onMounted(() => {
+  measure()
+  if (typeof ResizeObserver !== 'undefined' && stageEl.value) {
+    ro = new ResizeObserver(measure)
+    ro.observe(stageEl.value)
+  }
+  window.addEventListener('keydown', onKeydown)
+  document.body.style.overflow = 'hidden'
+})
+
+onBeforeUnmount(() => {
+  ro?.disconnect()
+  ro = null
+  window.removeEventListener('keydown', onKeydown)
+  document.body.style.overflow = ''
+})
 </script>
 
 <template>
   <div class="overlay" @click.self="emit('close')">
-    <aside class="drawer" role="dialog" aria-modal="true" :aria-label="block.name">
-      <header class="drawer__head">
-        <div>
-          <div class="drawer__cat">{{ categoryText }}</div>
-          <h2 class="drawer__name">{{ block.name }}</h2>
-          <p class="drawer__aka">{{ block.aka.join(' / ') }}</p>
+    <section class="page" role="dialog" aria-modal="true" :aria-label="block.name">
+      <header class="page__head">
+        <div class="page__identity">
+          <span class="page__cat">{{ categoryText }}</span>
+          <h2 class="page__name">{{ block.name }}</h2>
+          <p class="page__aka">{{ block.aka.join(' / ') }}</p>
         </div>
-        <button type="button" class="drawer__close" aria-label="关闭" @click="emit('close')">×</button>
+        <div class="page__actions">
+          <button type="button" class="btn btn--primary btn--sm" @click="copy(universalPrompt, 'universal')">
+            {{ copiedKey === 'universal' ? '已复制 ✓' : '复制通用提示词' }}
+          </button>
+          <button type="button" class="btn btn--sm" @click="copy(fullPrompt, 'full')">
+            {{ copiedKey === 'full' ? '已复制 ✓' : '复制 + 技术栈适配' }}
+          </button>
+          <a class="btn btn--ghost btn--sm" :href="demoUrl" target="_blank" rel="noopener">新标签打开</a>
+          <button type="button" class="page__close" aria-label="关闭" @click="emit('close')">×</button>
+        </div>
       </header>
 
-      <div class="drawer__actions">
-        <button type="button" class="btn btn--primary btn--sm" @click="copy(universalPrompt, 'universal')">
-          {{ copiedKey === 'universal' ? '已复制 ✓' : '复制通用提示词' }}
-        </button>
-        <button type="button" class="btn btn--sm" @click="copy(fullPrompt, 'full')">
-          {{ copiedKey === 'full' ? '已复制 ✓' : '复制 + 技术栈适配' }}
-        </button>
-        <button type="button" class="btn btn--ghost btn--sm" @click="showPreview = !showPreview">
-          {{ showPreview ? '收起演示' : '查看演示' }}
-        </button>
+      <div class="page__body">
+        <div class="page__demo">
+          <div ref="stageEl" class="stage" :style="stageStyle">
+            <iframe
+              :src="demoUrl"
+              :style="frameStyle"
+              sandbox="allow-scripts allow-forms"
+              title="效果演示"
+            ></iframe>
+          </div>
+          <p class="page__note">
+            演示按 {{ LOGICAL_W }}×{{ LOGICAL_H }} 渲染并等比缩放（当前 {{ Math.round(scale * 100) }}%），
+            完整展示桌面版式；交互请在画面内直接操作。
+          </p>
+        </div>
+
+        <div class="page__sheet">
+          <div class="meta-grid">
+            <div class="meta"><span>适用场景</span><b>{{ sceneText }}</b></div>
+            <div class="meta"><span>感觉</span><b>{{ feelText }}</b></div>
+            <div class="meta meta--wide"><span>可访问性</span><b>{{ block.a11y }}</b></div>
+            <div class="meta meta--wide"><span>不适用</span><b>{{ block.notFor.join(' / ') || '—' }}</b></div>
+          </div>
+
+          <section v-if="block.params.length" class="sheet-block">
+            <h3 class="sheet-title">参数</h3>
+            <table class="params">
+              <thead>
+                <tr><th>占位符</th><th>含义</th><th>默认</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="p in block.params" :key="p.key">
+                  <td><code v-text="'{{' + p.key + '}}'"></code></td>
+                  <td>{{ p.label }}</td>
+                  <td>{{ p.default }}{{ p.unit ?? '' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="sheet-block">
+            <h3 class="sheet-title">通用规格（与框架无关）</h3>
+            <PromptViewer :prompt="block.prompt" />
+          </section>
+
+          <section class="sheet-block">
+            <h3 class="sheet-title">技术栈适配（复制时附加）</h3>
+            <pre class="adapter">{{ adapter }}</pre>
+          </section>
+        </div>
       </div>
-
-      <div v-if="showPreview" class="drawer__preview">
-        <iframe :src="demoUrl" sandbox="allow-scripts" title="效果演示" loading="lazy"></iframe>
-      </div>
-
-      <div class="drawer__meta">
-        <div class="meta"><span>适用场景</span><b>{{ sceneText }}</b></div>
-        <div class="meta"><span>感觉</span><b>{{ feelText }}</b></div>
-        <div class="meta"><span>可访问性</span><b>{{ block.a11y }}</b></div>
-        <div class="meta"><span>不适用</span><b>{{ block.notFor.join(' / ') || '—' }}</b></div>
-      </div>
-
-      <div v-if="block.params.length" class="drawer__params">
-        <h3 class="drawer__h3">参数</h3>
-        <table>
-          <thead>
-            <tr><th>占位符</th><th>含义</th><th>默认</th></tr>
-          </thead>
-          <tbody>
-            <tr v-for="p in block.params" :key="p.key">
-              <td><code v-text="'{{' + p.key + '}}'"></code></td>
-              <td>{{ p.label }}</td>
-              <td>{{ p.default }}{{ p.unit ?? '' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h3 class="drawer__h3">通用规格（与框架无关）</h3>
-      <PromptViewer :prompt="block.prompt" />
-
-      <h3 class="drawer__h3">技术栈适配（复制时附加）</h3>
-      <pre class="drawer__adapter">{{ adapter }}</pre>
-    </aside>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.drawer {
+.page {
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: 51;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: min(660px, 100%);
-  overflow-y: auto;
-  padding: 22px 24px 48px;
-  border-left: 1px solid var(--line);
   background: #0b1222;
-  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.5);
-  animation: slide-in 220ms ease;
+  animation: page-in 200ms ease;
 }
 
-@keyframes slide-in {
-  from { transform: translateX(28px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* 抽屉是固定高度的纵向 flex 容器：禁止子项被压缩，
-   否则 overflow:hidden 的预览区和高文本的适配层会被裁成一条缝 */
-.drawer > * { flex: 0 0 auto; }
+.page__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--line-soft);
+  background: rgba(11, 18, 34, 0.94);
+}
 
-.drawer__head { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; }
+.page__cat { font-size: 11px; letter-spacing: 1px; color: var(--accent); }
 
-.drawer__cat { font-size: 11px; letter-spacing: 1px; color: var(--accent); }
+.page__name { margin: 4px 0 3px; font-size: 20px; }
 
-.drawer__name { margin: 6px 0 4px; font-size: 21px; }
+.page__aka { margin: 0; font-size: 12px; color: var(--muted); }
 
-.drawer__aka { margin: 0; font-size: 12px; color: var(--muted); }
+.page__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 
-.drawer__close {
-  flex: none;
-  width: 32px;
-  height: 32px;
+.page__close {
+  width: 34px;
+  height: 34px;
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: 10px;
   background: transparent;
   color: var(--muted);
-  font-size: 19px;
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
 }
 
-.drawer__close:hover { color: var(--text); border-color: var(--accent); }
+.page__close:hover { color: var(--text); border-color: var(--accent); }
 
-.drawer__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.page__body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(400px, 0.92fr);
+}
 
-.drawer__preview {
+.page__demo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px 22px;
+  overflow-y: auto;
+  border-right: 1px solid var(--line-soft);
+}
+
+.stage {
+  position: relative;
   overflow: hidden;
+  width: 100%;
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   background: #0d1324;
 }
 
-.drawer__preview iframe { display: block; width: 100%; height: 360px; border: 0; }
+.stage iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 0;
+  transform-origin: top left;
+}
 
-.drawer__meta { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.page__note { margin: 10px 2px 0; font-size: 11.5px; line-height: 1.7; color: #61708f; }
+
+.page__sheet { padding: 20px 24px 60px; overflow-y: auto; }
+
+.meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 22px; }
 
 .meta {
   display: flex;
@@ -159,19 +234,28 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   gap: 3px;
   padding: 9px 11px;
   border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
+  border-radius: 9px;
   font-size: 12px;
 }
+
+.meta--wide { grid-column: 1 / -1; }
 
 .meta span { font-size: 10.5px; color: var(--muted); }
 
 .meta b { font-weight: 500; color: #cfdaee; }
 
-.drawer__h3 { margin: 6px 0 0; font-size: 12.5px; letter-spacing: 0.5px; color: var(--muted); }
+.sheet-block { margin-bottom: 26px; }
 
-.drawer__params table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.sheet-title {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
 
-.drawer__params th {
+.params { width: 100%; border-collapse: collapse; font-size: 12px; }
+
+.params th {
   padding: 7px 9px;
   text-align: left;
   font-weight: 500;
@@ -179,7 +263,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   border-bottom: 1px solid var(--line-soft);
 }
 
-.drawer__params td { padding: 7px 9px; color: #c6d2e8; border-bottom: 1px solid var(--line-soft); }
+.params td { padding: 7px 9px; color: #c6d2e8; border-bottom: 1px solid var(--line-soft); }
 
 code {
   padding: 1px 5px;
@@ -190,17 +274,25 @@ code {
   color: var(--accent);
 }
 
-.drawer__adapter {
+.adapter {
   margin: 0;
-  padding: 13px;
-  overflow-x: auto;
+  padding: 14px;
   border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
-  background: rgba(11, 17, 30, 0.6);
+  border-radius: 9px;
+  background: rgba(11, 17, 30, 0.7);
   font-family: var(--mono);
   font-size: 11.5px;
-  line-height: 1.7;
+  line-height: 1.75;
   color: #9fb0cc;
   white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 900px) {
+  .page__head { padding: 12px 14px; }
+  .page__body { display: block; overflow-y: auto; }
+  .page__demo { border-right: 0; border-bottom: 1px solid var(--line-soft); overflow: visible; }
+  .page__sheet { overflow: visible; padding: 16px 14px 60px; }
+  .meta-grid { grid-template-columns: 1fr; }
 }
 </style>

@@ -52,6 +52,8 @@
     );
   }
   .card:hover::before { opacity: 1; }
+  /* 首屏自动演示时也显示光斑，避免用户以为没有效果 */
+  .card.is-demo::before { opacity: 1; }
   .card__body { position: relative; z-index: 1; }
   .card h2 { margin: 0 0 8px; font-size: 16px; }
   .card p { margin: 0; font-size: 13px; line-height: 1.7; color: var(--muted); }
@@ -106,6 +108,28 @@
   const cards = document.querySelectorAll('.card')
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   if (reduce) return
+
+  // 打开后先自动扫一轮光斑（约 4 秒），指针一进入就交还给用户
+  let demoRaf = 0
+  const demoStart = performance.now()
+  const stopDemo = () => {
+    if (demoRaf) cancelAnimationFrame(demoRaf)
+    demoRaf = 0
+    cards.forEach((c) => c.classList.remove('is-demo'))
+  }
+  const sweep = (now) => {
+    if ((now - demoStart) / 1000 > 4) { stopDemo(); return }
+    const t = (now - demoStart) / 1000
+    cards.forEach((card, i) => {
+      card.classList.add('is-demo')
+      const p = t * 1.4 + i * 0.55
+      card.style.setProperty('--mx', (50 + Math.sin(p) * 36) + '%')
+      card.style.setProperty('--my', (50 + Math.cos(p * 1.15) * 28) + '%')
+    })
+    demoRaf = requestAnimationFrame(sweep)
+  }
+  demoRaf = requestAnimationFrame(sweep)
+  cards.forEach((card) => card.addEventListener('pointerenter', stopDemo, { once: true }))
 
   cards.forEach((card) => {
     let raf = 0

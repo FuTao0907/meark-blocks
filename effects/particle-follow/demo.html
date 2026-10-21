@@ -80,6 +80,7 @@
   let raf = 0
   let running = false
   let lastSpawn = 0
+  let idle = !reduce
   let w = 0, h = 0, dpr = 1
 
   const resize = () => {
@@ -106,6 +107,15 @@
   }
 
   const frame = (now) => {
+    // 无人操作时沿李萨如轨迹自动演示，避免打开后看到一片空白
+    if (idle && !reduce && now - lastSpawn > 32) {
+      const t = now / 1000
+      const cx = w / 2 + Math.sin(t * 0.9) * w * 0.28
+      const cy = h / 2 + Math.cos(t * 1.6) * h * 0.24
+      spawn(cx, cy)
+      spawn(cx + (Math.random() - 0.5) * 20, cy + (Math.random() - 0.5) * 20)
+      lastSpawn = now
+    }
     ctx.clearRect(0, 0, w, h)
     let any = false
     for (const p of particles) {
@@ -125,7 +135,7 @@
       ctx.arc(p.x, p.y, r, 0, Math.PI * 2)
       ctx.fill()
     }
-    if (any) {
+    if (any || (idle && !reduce)) {
       raf = requestAnimationFrame(frame)
     } else {
       running = false
@@ -141,6 +151,7 @@
 
   const onMove = (e) => {
     if (reduce) return
+    idle = false
     const r = stage.getBoundingClientRect()
     const x = e.clientX - r.left
     const y = e.clientY - r.top
@@ -165,6 +176,23 @@
   })
 
   resize()
+
+  // 减弱动态效果时不做动画，但保留一圈静态粒子，避免画面完全空白
+  if (reduce) {
+    const cx = w / 2
+    const cy = h / 2
+    const radius = Math.min(w, h) * 0.28
+    const dots = 28
+    for (let i = 0; i < dots; i += 1) {
+      const a = (i / dots) * Math.PI * 2
+      ctx.beginPath()
+      ctx.fillStyle = 'rgba(94, 234, 212, ' + (0.22 + (i % 5) * 0.09).toFixed(2) + ')'
+      ctx.arc(cx + Math.cos(a) * radius, cy + Math.sin(a) * radius, 2.6, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
+
+  if (!reduce) kick()
 })()
 </script>
 </body>
