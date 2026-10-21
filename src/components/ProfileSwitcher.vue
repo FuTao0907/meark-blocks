@@ -64,9 +64,10 @@ function setOutput(event: Event) {
 .profile {
   min-width: 300px;
   padding: 10px 12px;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-field);
-  background: rgba(17, 26, 46, 0.6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--panel);
+  box-shadow: var(--shadow-sm);
 }
 
 .profile__title {
@@ -84,10 +85,10 @@ function setOutput(event: Event) {
 
 .profile__row label { display: flex; flex-direction: column; gap: 3px; }
 
-.profile__row label > span { font-size: 10.5px; color: #61708f; }
+.profile__row label > span { font-size: 10.5px; color: var(--muted); }
 
 @media (max-width: 640px) {
-  .profile { min-width: 0; width: 100%; }
+  .profile { min-width: 0; flex: 1; }
   .profile__row label { flex: 1 1 44%; min-width: 0; }
   .profile__row select { width: 100%; }
 }
@@ -95,15 +96,18 @@ function setOutput(event: Event) {
 select {
   height: 34px;
   padding: 0 8px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-field);
-  background: var(--panel);
+  background: var(--panel-2);
   color: var(--text);
   font-size: 12px;
   outline: none;
   cursor: pointer;
 }
 
-select:focus { border-color: var(--accent); }
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
 </style>
 

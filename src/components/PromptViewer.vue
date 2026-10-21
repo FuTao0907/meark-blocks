@@ -31,9 +31,9 @@ const sections = computed(() =>
 
 .prompt__section {
   padding: 11px 13px;
-  border: 1px solid var(--line-soft);
+  border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  background: rgba(11, 17, 30, 0.6);
+  background: var(--panel);
 }
 
 .prompt__label {
@@ -48,7 +48,7 @@ const sections = computed(() =>
   margin: 0;
   font-size: 13px;
   line-height: 1.75;
-  color: #c6d2e8;
+  color: var(--text-regular);
   white-space: pre-wrap;
   word-break: break-word;
 }

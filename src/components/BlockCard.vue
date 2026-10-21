@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import BaseIcon from './BaseIcon.vue'
 import type { Block } from '../types'
 import { CATEGORY_LABELS, FEEL_LABELS, SCENE_LABELS, labelOf } from '../constants'
 
@@ -32,7 +33,7 @@ const aka = computed(() => props.block.aka.slice(0, 3).join(' / '))
         :title="selected ? '从组合中移除' : '加入组合'"
         @click.stop="emit('toggle')"
       >
-        {{ selected ? '✓' : '+' }}
+        <BaseIcon :name="selected ? 'check' : 'plus'" :size="14" />
       </button>
     </div>
 
@@ -57,26 +58,28 @@ const aka = computed(() => props.block.aka.slice(0, 3).join(' / '))
   display: flex;
   flex-direction: column;
   padding: 16px 16px 14px;
-  border: 1px solid var(--line-soft);
+  border: 1px solid var(--line);
   border-radius: var(--radius-card);
   background: var(--panel);
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
   outline: none;
-  transition: border-color 160ms ease, transform 160ms ease;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .card:hover {
-  border-color: var(--line);
+  border-color: var(--border-strong);
   transform: translateY(-2px);
 }
 
 .card:focus-visible {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(232, 184, 109, 0.16);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .card--on {
-  border-color: rgba(232, 184, 109, 0.55);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .card__head {
@@ -100,13 +103,12 @@ const aka = computed(() => props.block.aka.slice(0, 3).join(' / '))
   transition: all 150ms ease;
 }
 
-.card__pick:hover { color: var(--text); border-color: var(--accent); }
+.card__pick:hover { color: var(--accent); border-color: var(--accent); }
 
 .card__pick--on {
   border-color: transparent;
   background: var(--accent);
-  color: #241a08;
-  font-weight: 700;
+  color: var(--accent-text);
 }
 
 .card__name { margin: 13px 0 6px; font-size: 15.5px; letter-spacing: 0.2px; }
@@ -116,7 +118,7 @@ const aka = computed(() => props.block.aka.slice(0, 3).join(' / '))
   min-height: 32px;
   font-size: 12px;
   line-height: 1.55;
-  color: #6f7f9e;
+  color: var(--muted);
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -137,7 +139,7 @@ const aka = computed(() => props.block.aka.slice(0, 3).join(' / '))
   margin-top: auto;
   padding-top: 10px;
   font-size: 11.5px;
-  color: #6f7f9e;
+  color: var(--muted);
 }
 
 .dot { opacity: 0.5; }

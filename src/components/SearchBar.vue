@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import BaseIcon from './BaseIcon.vue'
+
 defineProps<{ modelValue: string }>()
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
@@ -9,7 +11,7 @@ function onInput(event: Event) {
 
 <template>
   <div class="search">
-    <span class="search__icon" aria-hidden="true">⌕</span>
+    <span class="search__icon" aria-hidden="true"><BaseIcon name="search" :size="18" /></span>
     <input
       class="search__input"
       type="search"
@@ -31,17 +33,18 @@ function onInput(event: Event) {
   gap: 10px;
   height: 44px;
   padding: 0 12px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-field);
-  background: var(--panel);
-  transition: border-color 160ms ease;
+  background: var(--panel-2);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .search:focus-within {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
-.search__icon { color: var(--muted); font-size: 18px; line-height: 1; }
+.search__icon { display: grid; place-items: center; color: var(--muted); }
 
 .search__input {
   flex: 1;
@@ -53,7 +56,7 @@ function onInput(event: Event) {
   font-size: 14px;
 }
 
-.search__input::placeholder { color: #61708f; }
+.search__input::placeholder { color: var(--placeholder); }
 
 .search__input::-webkit-search-cancel-button { display: none; }
 
@@ -67,6 +70,6 @@ function onInput(event: Event) {
   cursor: pointer;
 }
 
-.search__clear:hover { color: var(--text); border-color: var(--accent); }
+.search__clear:hover { color: var(--accent); border-color: var(--accent); }
 </style>
 

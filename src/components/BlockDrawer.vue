@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import BaseIcon from './BaseIcon.vue'
 import PromptViewer from './PromptViewer.vue'
 import { useClipboard } from '../composables/useClipboard'
 import { CATEGORY_LABELS, FEEL_LABELS, SCENE_LABELS, labelOf } from '../constants'
@@ -91,7 +92,9 @@ onBeforeUnmount(() => {
             {{ copiedKey === 'full' ? '已复制 ✓' : '复制 + 技术栈适配' }}
           </button>
           <button type="button" class="btn btn--ghost" @click="fullscreen = true">全屏预览</button>
-          <button type="button" class="page__close" aria-label="关闭" @click="emit('close')">×</button>
+          <button type="button" class="page__close" aria-label="关闭" @click="emit('close')">
+            <BaseIcon name="close" :size="18" />
+          </button>
         </div>
       </header>
 
@@ -159,7 +162,9 @@ onBeforeUnmount(() => {
 
     <div v-if="fullscreen" class="fs" role="dialog" aria-label="全屏演示">
       <iframe :src="demoSrc" sandbox="allow-scripts allow-forms" title="全屏演示"></iframe>
-      <button type="button" class="fs__close" aria-label="退出全屏" @click="fullscreen = false">×</button>
+      <button type="button" class="fs__close" aria-label="退出全屏" @click="fullscreen = false">
+        <BaseIcon name="close" :size="20" />
+      </button>
     </div>
   </div>
 </template>
@@ -187,7 +192,7 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   justify-content: space-between;
   padding: 16px 24px;
-  border-bottom: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line);
   background: var(--bg);
 }
 
@@ -200,18 +205,18 @@ onBeforeUnmount(() => {
 .page__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 
 .page__close {
+  display: grid;
+  place-items: center;
   width: 34px;
   height: 34px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-field);
-  background: transparent;
+  background: var(--panel);
   color: var(--muted);
-  font-size: 20px;
-  line-height: 1;
   cursor: pointer;
 }
 
-.page__close:hover { color: var(--text); border-color: var(--accent); }
+.page__close:hover { color: var(--accent); border-color: var(--accent); }
 
 .page__body {
   flex: 1;
@@ -226,7 +231,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   padding: 20px 22px;
   overflow-y: auto;
-  border-right: 1px solid var(--line-soft);
+  border-right: 1px solid var(--line);
 }
 
 .stage {
@@ -235,7 +240,7 @@ onBeforeUnmount(() => {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: var(--radius-field);
-  background: var(--bg);
+  background: var(--demo-backdrop);
 }
 
 .stage iframe {
@@ -253,7 +258,7 @@ onBeforeUnmount(() => {
   margin: 12px 2px 0;
   font-size: 11.5px;
   line-height: 1.7;
-  color: #61708f;
+  color: var(--muted);
 }
 
 .page__note p { margin: 0; }
@@ -262,7 +267,7 @@ onBeforeUnmount(() => {
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  color: #8b9ab8;
+  color: var(--text-regular);
   cursor: pointer;
 }
 
@@ -270,13 +275,13 @@ onBeforeUnmount(() => {
 
 .motion-warn {
   padding: 8px 10px;
-  border: 1px solid rgba(251, 191, 36, 0.32);
+  border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
   border-radius: var(--radius-field);
-  background: rgba(251, 191, 36, 0.08);
-  color: #d9b56b;
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: var(--warning);
 }
 
-.fs { position: fixed; inset: 0; z-index: 60; background: var(--bg); }
+.fs { position: fixed; inset: 0; z-index: 60; background: var(--demo-backdrop); }
 
 .fs iframe { display: block; width: 100%; height: 100%; border: 0; }
 
@@ -285,14 +290,14 @@ onBeforeUnmount(() => {
   top: 14px;
   right: 14px;
   z-index: 61;
+  display: grid;
+  place-items: center;
   width: 38px;
   height: 38px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-field);
-  background: rgba(11, 17, 30, 0.9);
+  background: var(--panel-2);
   color: var(--text);
-  font-size: 22px;
-  line-height: 1;
   cursor: pointer;
 }
 
@@ -307,8 +312,9 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 3px;
   padding: 9px 11px;
-  border: 1px solid var(--line-soft);
+  border: 1px solid var(--line);
   border-radius: var(--radius-field);
+  background: var(--panel);
   font-size: 12px;
 }
 
@@ -316,7 +322,7 @@ onBeforeUnmount(() => {
 
 .meta span { font-size: 10.5px; color: var(--muted); }
 
-.meta b { font-weight: 500; color: #cfdaee; }
+.meta b { font-weight: 500; color: var(--text-regular); }
 
 .sheet-block { margin-bottom: 26px; }
 
@@ -334,15 +340,15 @@ onBeforeUnmount(() => {
   text-align: left;
   font-weight: 500;
   color: var(--muted);
-  border-bottom: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line);
 }
 
-.params td { padding: 7px 9px; color: #c6d2e8; border-bottom: 1px solid var(--line-soft); }
+.params td { padding: 7px 9px; color: var(--text-regular); border-bottom: 1px solid var(--line); }
 
 code {
   padding: 1px 5px;
   border-radius: 4px;
-  background: var(--panel);
+  background: var(--bg-soft);
   font-family: var(--mono);
   font-size: 11.5px;
   color: var(--accent);
@@ -351,13 +357,13 @@ code {
 .adapter {
   margin: 0;
   padding: 14px;
-  border: 1px solid var(--line-soft);
+  border: 1px solid var(--line);
   border-radius: var(--radius-field);
-  background: rgba(11, 17, 30, 0.7);
+  background: var(--sunken);
   font-family: var(--mono);
   font-size: 11.5px;
   line-height: 1.75;
-  color: #9fb0cc;
+  color: var(--text-regular);
   white-space: pre-wrap;
   word-break: break-word;
 }

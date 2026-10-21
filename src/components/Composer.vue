@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import BaseIcon from './BaseIcon.vue'
 import { useClipboard } from '../composables/useClipboard'
 import type { Block } from '../types'
 
@@ -44,13 +45,17 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           <h2>组合需求</h2>
           <p>把 {{ blocks.length }} 块积木拼成一份可直接交给 AI 的需求</p>
         </div>
-        <button type="button" class="composer__close" aria-label="关闭" @click="emit('close')">×</button>
+        <button type="button" class="composer__close" aria-label="关闭" @click="emit('close')">
+          <BaseIcon name="close" :size="18" />
+        </button>
       </header>
 
       <div class="composer__chips">
         <span v-for="b in blocks" :key="b.id" class="chip">
           {{ b.name }}
-          <button type="button" :aria-label="'移除 ' + b.name" @click="emit('remove', b.id)">×</button>
+          <button type="button" :aria-label="'移除 ' + b.name" @click="emit('remove', b.id)">
+            <BaseIcon name="close" :size="11" :stroke="2" />
+          </button>
         </span>
       </div>
 
@@ -98,7 +103,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   padding: 22px 24px;
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
-  background: var(--panel);
+  background: var(--panel-2);
   box-shadow: var(--shadow);
   transform: translate(-50%, -50%);
   animation: pop-in 200ms ease;
@@ -143,10 +148,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   height: 17px;
   border: 0;
   border-radius: 50%;
-  background: rgba(232, 184, 109, 0.18);
+  background: var(--accent-dim);
   color: var(--accent);
-  font-size: 12px;
-  line-height: 1;
   cursor: pointer;
 }
 
@@ -155,20 +158,23 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 .composer__field input {
   height: 36px;
   padding: 0 12px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-field);
-  background: var(--bg);
+  background: var(--panel-2);
   color: var(--text);
   font-size: 13px;
   outline: none;
 }
 
-.composer__field input:focus { border-color: var(--accent); }
+.composer__field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
 
 .composer__editor {
   overflow: hidden;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
 }
 
 .composer__bar {
@@ -176,8 +182,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   align-items: center;
   justify-content: space-between;
   padding: 7px 11px;
-  border-bottom: 1px solid var(--line-soft);
-  background: rgba(17, 26, 46, 0.7);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-soft);
   font-size: 11.5px;
   color: var(--muted);
 }
@@ -188,11 +194,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   padding: 14px;
   max-height: 320px;
   overflow-y: auto;
-  background: rgba(8, 12, 23, 0.7);
+  background: var(--sunken);
   font-family: var(--mono);
   font-size: 11.5px;
   line-height: 1.75;
-  color: #9fb0cc;
+  color: var(--text-regular);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -206,7 +212,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   resize: vertical;
 }
 
-.composer__hint { margin: 0; padding: 0 14px 12px; font-size: 11px; color: #61708f; }
+.composer__hint { margin: 0; padding: 0 14px 12px; font-size: 11px; color: var(--muted); }
 
 .composer__foot { display: flex; gap: 9px; justify-content: flex-end; }
 </style>

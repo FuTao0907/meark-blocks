@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import BaseIcon from './components/BaseIcon.vue'
 import BlockCard from './components/BlockCard.vue'
 import BlockDrawer from './components/BlockDrawer.vue'
 import Composer from './components/Composer.vue'
@@ -9,11 +10,13 @@ import SearchBar from './components/SearchBar.vue'
 import { useCatalog } from './composables/useCatalog'
 import { buildComposerPrompt } from './composables/useComposer'
 import { useProfile } from './composables/useProfile'
+import { useTheme } from './composables/useTheme'
 import { CATEGORY_LABELS, FEEL_LABELS, SCENE_LABELS, labelOf } from './constants'
 import type { Block, Profile } from './types'
 
 const { blocks, adapters, loading, error } = useCatalog()
 const { profile } = useProfile()
+const { theme, toggle: toggleTheme } = useTheme()
 
 const query = ref('')
 const activeCategory = ref('')
@@ -127,13 +130,24 @@ onMounted(() => {
   <div class="app">
     <header class="topbar">
       <div class="brand">
-        <span class="brand__mark">▦</span>
+        <span class="brand__mark"><BaseIcon name="blocks" :size="22" /></span>
         <div>
           <h1 class="brand__title">积木库</h1>
           <p class="brand__sub">把想要的效果翻译成 AI 能准确执行的规格 · 提示词与框架无关</p>
         </div>
       </div>
-      <ProfileSwitcher :profile="profile" @update="onProfileUpdate" />
+      <div class="topbar__tools">
+        <button
+          type="button"
+          class="icon-btn"
+          :aria-label="theme === 'light' ? '切换到深色模式' : '切换到浅色模式'"
+          :title="theme === 'light' ? '深色模式' : '浅色模式'"
+          @click="toggleTheme"
+        >
+          <BaseIcon :name="theme === 'light' ? 'moon' : 'sun'" :size="18" />
+        </button>
+        <ProfileSwitcher :profile="profile" @update="onProfileUpdate" />
+      </div>
     </header>
 
     <section class="controls">
