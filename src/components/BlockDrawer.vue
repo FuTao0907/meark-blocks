@@ -113,6 +113,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   to { transform: translateX(0); opacity: 1; }
 }
 
+/* 抽屉是固定高度的纵向 flex 容器：禁止子项被压缩，
+   否则 overflow:hidden 的预览区和高文本的适配层会被裁成一条缝 */
+.drawer > * { flex: 0 0 auto; }
+
 .drawer__head { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; }
 
 .drawer__cat { font-size: 11px; letter-spacing: 1px; color: var(--accent); }

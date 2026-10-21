@@ -109,6 +109,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   to { opacity: 1; transform: translate(-50%, -50%); }
 }
 
+/* 同上：弹窗内部子项不参与压缩，避免长内容被裁切 */
+.composer > * { flex: 0 0 auto; }
+
 .composer__head { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; }
 
 .composer__head h2 { margin: 0 0 4px; font-size: 18px; }
